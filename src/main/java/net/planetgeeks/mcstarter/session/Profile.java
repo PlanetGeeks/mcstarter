@@ -5,7 +5,7 @@ import lombok.Data;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 
 /**
- * Contains Yggdrasil profile informations.
+ * Contains minecraft profile informations.
  * <ul>
  * <li> {@link #Profile.getId()} return the id (email/username) linked to this profile.</li>
  * <li> {@link #Profile.getName()} return the name of this profile.</li>
@@ -19,8 +19,8 @@ import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown = true, value = { "session" })
 public class Profile
 {
-    private String id;
-    private String name;
+    private final String id;
+    private final String name;
     private boolean legacy;
     private Session session;
 }

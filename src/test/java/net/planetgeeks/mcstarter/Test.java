@@ -4,8 +4,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-import net.planetgeeks.mcstarter.session.Session;
-import net.planetgeeks.mcstarter.session.Session.AuthException;
+import net.planetgeeks.mcstarter.session.OnlineSession;
+import net.planetgeeks.mcstarter.session.OnlineSession.AuthException;
 
 public class Test
 {
@@ -13,7 +13,7 @@ public class Test
     {
     	String id;
     	String password;
-    	
+    	 
     	try(BufferedReader br = new BufferedReader(new InputStreamReader(System.in)))
     	{
     		System.out.print("Insert email/username: ");
@@ -23,7 +23,7 @@ public class Test
     		password = br.readLine();
     	}
     	
-    	Session session = new Session(id);
+    	OnlineSession session = new OnlineSession(id);
     	session.setPassword(password);
     	
         try
