@@ -109,9 +109,9 @@ public abstract class HttpRequest implements Closeable
 
 	/**
 	 * Check if the request was successful. If the response code of the relative
-	 * {@link #HttpURLConnection} isn't 200 this method will automatically close the
-	 * connection and will throw an {@link #IOException}. This method must be
-	 * called after {@link #perform()}.
+	 * {@link #HttpURLConnection} isn't 200 this method will automatically close
+	 * the connection and will throw an {@link #IOException}. This method must
+	 * be called after {@link #perform()}.
 	 * 
 	 * @return this object.
 	 * @throws IOException if the request wasn't successful.
@@ -126,12 +126,12 @@ public abstract class HttpRequest implements Closeable
 		close();
 		throw new IOException("The request wasn't successful! Returned response code : " + code);
 	}
-	
+
 	public synchronized int getResponseCode() throws IOException
 	{
 		if (connection == null)
 			throw new IllegalArgumentException("This request wasn't performed!");
-		
+
 		return connection.getResponseCode();
 	}
 
@@ -152,7 +152,8 @@ public abstract class HttpRequest implements Closeable
 	}
 
 	/**
-	 * @return the http request method that will be used during {@link #perform()}.
+	 * @return the http request method that will be used during
+	 *         {@link #perform()}.
 	 */
 	protected abstract String getMethod();
 
@@ -248,7 +249,7 @@ public abstract class HttpRequest implements Closeable
 		 */
 		public synchronized HttpResponse getResponseContent() throws IOException, InterruptedException
 		{
-			if (getInputStream() == null && latestResponse == null)
+			if (!hasResponseContent())
 				throw new IllegalArgumentException("There's no content to read! InputStream is null.");
 
 			if (latestResponse != null)
@@ -272,6 +273,14 @@ public abstract class HttpRequest implements Closeable
 			{
 				close();
 			}
+		}
+		
+		/**
+		 * @return true if there's content to read!
+		 */
+		public boolean hasResponseContent()
+		{
+			return getInputStream() != null || latestResponse != null;
 		}
 	}
 

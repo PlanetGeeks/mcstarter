@@ -48,7 +48,7 @@ public class HttpResponse
 	 * @param encoding - the encoding that will be used to decode the array of
 	 *            bytes.
 	 * @return the string.
-	 * @throws UnsupportedEncodingException if the gived encoding in not
+	 * @throws UnsupportedEncodingException if the given encoding in not
 	 *             supported.
 	 */
 	public String asString(String encoding) throws UnsupportedEncodingException
@@ -62,7 +62,7 @@ public class HttpResponse
 	 * @param objClass - the class that will be used by the
 	 *            {@link #ObjectMapper} to create and setup the json object.
 	 * @return the object.
-	 * @throws IOException will be throw if the gived objClass is not suitable
+	 * @throws IOException will be throw if the given objClass is not suitable
 	 *             for this response.
 	 */
 	public <T> T asJSONObject(Class<T> objClass) throws IOException
