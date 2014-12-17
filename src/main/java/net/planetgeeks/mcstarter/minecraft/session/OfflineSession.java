@@ -1,4 +1,4 @@
-package net.planetgeeks.mcstarter.session;
+package net.planetgeeks.mcstarter.minecraft.session;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,7 +9,7 @@ import lombok.NonNull;
 import lombok.Setter;
 
 /**
- * Contains a random/custom offline session informations.
+ * Contains a random/custom offline session information.
  * 
  * <p>
  * Usage example:
@@ -33,6 +33,10 @@ public class OfflineSession implements Session
 	@Setter @Getter
     private List<Profile> availableProfiles;
 	
+	/**
+	 * Construct an OfflineSession with the given name.
+	 * @param name - profile name
+	 */
 	public OfflineSession(@NonNull String name)
 	{
 		List<Profile> profiles = new ArrayList<Profile>();
@@ -42,6 +46,9 @@ public class OfflineSession implements Session
 		setAvailableProfiles(profiles);
 	}
 	
+	/**
+	 * Construct an OfflineSession with a random profile's name.
+	 */
 	public OfflineSession()
 	{
 		this("Player" + (new Random().nextInt(900) + 100));

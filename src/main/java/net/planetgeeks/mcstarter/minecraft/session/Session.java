@@ -1,4 +1,4 @@
-package net.planetgeeks.mcstarter.session;
+package net.planetgeeks.mcstarter.minecraft.session;
 
 import java.util.List;
 

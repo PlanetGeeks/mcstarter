@@ -1,57 +1,22 @@
 package net.planetgeeks.mcstarter;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 
-import net.planetgeeks.mcstarter.session.OnlineSession;
-import net.planetgeeks.mcstarter.session.OnlineSession.AuthException;
+import net.planetgeeks.mcstarter.minecraft.MinecraftVersions;
 
-public class Test
+public abstract class Test
 {
     public static void main(String[]args) throws IOException
     {
-    	String id;
-    	String password;
-    	 
-    	try(BufferedReader br = new BufferedReader(new InputStreamReader(System.in)))
-    	{
-    		System.out.print("Insert email/username: ");
-    		id = br.readLine();
-    		System.out.println();
-    		System.out.print("Insert password: ");
-    		password = br.readLine();
-    	}
+    //	new TestSerialization().test();
     	
-    	OnlineSession session = new OnlineSession(id);
-    	session.setPassword(password);
     	
-        try
-		{
-        	//verify the session with the provided credentials
-			session.verify();
-			
-			System.out.println("FIRST ACCESSTOKEN : " + session.getAccessToken());
-			
-			session.refresh();
-			
-			System.out.println("REFRESHED ACCESSTOKEN : " + session.getAccessToken());
-			
-			session.signout();
-			
-			System.out.println("SIGNOUT CORRECTLY");
-		}
-		catch (IOException e)
-		{
-			e.printStackTrace();
-		}
-		catch (InterruptedException e)
-		{
-			e.printStackTrace();
-		}
-		catch (AuthException e)
-		{
-			e.printStackTrace();
-		}	
+    	MinecraftVersions versions = MinecraftVersions.retrive();
+    	
+    	System.out.println(versions.getVersion("1.8.1").getReleaseTime());
+    	
+    	System.out.println(versions.getLatestRelease().getId());
     }
+      
+    public abstract void test();
 }

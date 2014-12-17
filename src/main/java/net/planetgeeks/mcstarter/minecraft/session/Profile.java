@@ -1,11 +1,11 @@
-package net.planetgeeks.mcstarter.session;
+package net.planetgeeks.mcstarter.minecraft.session;
 
 import lombok.Data;
 
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 
 /**
- * Contains minecraft profile informations.
+ * Contains minecraft profile information.
  * <ul>
  * <li> {@link #Profile.getId()} return the id (email/username) linked to this profile.</li>
  * <li> {@link #Profile.getName()} return the name of this profile.</li>

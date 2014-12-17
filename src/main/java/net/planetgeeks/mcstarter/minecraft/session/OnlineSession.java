@@ -1,4 +1,4 @@
-package net.planetgeeks.mcstarter.session;
+package net.planetgeeks.mcstarter.minecraft.session;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -13,7 +13,7 @@ import lombok.Setter;
 import net.planetgeeks.mcstarter.util.http.HttpRequest.HttpPostRequest;
 
 /**
- * Contains Yggdrasil session informations and provides different methods to
+ * Contains Yggdrasil session information and provides different methods to
  * manage them.
  * <p>
  * Usage example:
@@ -104,7 +104,7 @@ public class OnlineSession implements Session
 			request = new HttpPostRequest(getEndpoint(YggdrasilEndPoint.AUTHENTICATE));
 			request.setBodyJson(new AuthPayload(getId(), getPassword()));
 			request.perform();
-
+			
 			checkResponse(request, HttpURLConnection.HTTP_OK);
 
 			AuthResponse response = request.getResponseContent().asJSONObject(AuthResponse.class);
@@ -277,10 +277,8 @@ public class OnlineSession implements Session
 
 	private void checkResponse(@NonNull HttpPostRequest request, @NonNull int... expectedCodes) throws IOException, InterruptedException, AuthException
 	{
-		int code = request.getResponseCode();
-
 		for (int expected : expectedCodes)
-			if (expected == code)
+			if(request.successful(expected))
 				return;
 
 		if (request.hasResponseContent())

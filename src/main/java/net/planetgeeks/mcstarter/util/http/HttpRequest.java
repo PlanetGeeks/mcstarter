@@ -109,22 +109,40 @@ public abstract class HttpRequest implements Closeable
 
 	/**
 	 * Check if the request was successful. If the response code of the relative
-	 * {@link #HttpURLConnection} isn't 200 this method will automatically close
-	 * the connection and will throw an {@link #IOException}. This method must
-	 * be called after {@link #perform()}.
+	 * {@link #HttpURLConnection} isn't equals to the one given this method will
+	 * automatically close the connection and will throw an {@link #IOException}
+	 * . This method must be called after {@link #perform()}.
 	 * 
+	 * @param code - the expected code
 	 * @return this object.
 	 * @throws IOException if the request wasn't successful.
 	 */
-	public synchronized HttpRequest successful() throws IOException
+	public synchronized HttpRequest successfulOrClose(int code) throws IOException
 	{
-		int code = getResponseCode();
+		try
+		{
+			if (successful(code))
+				return this;
+			else throw new IOException();
+		}
+		catch(IOException e)
+		{
+			close();
+			throw new IOException("The request wasn't successful!");
+		}
+	}
 
-		if (code == 200)
-			return this;
-
-		close();
-		throw new IOException("The request wasn't successful! Returned response code : " + code);
+	/**
+	 * Check if the request was successful. This method must be called after
+	 * {@link #perform()}.
+	 * 
+	 * @param code - the expected code.
+	 * @return true if the response code equals the one given.
+	 * @throws IOException if the request hasn't provided a response code.
+	 */
+	public synchronized boolean successful(int code) throws IOException
+	{
+		return code == getResponseCode();
 	}
 
 	public synchronized int getResponseCode() throws IOException
@@ -274,7 +292,7 @@ public abstract class HttpRequest implements Closeable
 				close();
 			}
 		}
-		
+
 		/**
 		 * @return true if there's content to read!
 		 */
