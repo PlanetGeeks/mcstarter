@@ -34,7 +34,7 @@ public class MinecraftVersions
 	/**
 	 * Retrive versions information from internet or from a cached container if this is available.
 	 * 
-	 * @return a new <code>MinecraftVersions</object> containing versions information.
+	 * @return a new <code>MinecraftVersions</code> object containing versions information.
 	 * @throws IOException
 	 */
 	public synchronized static MinecraftVersions retrive() throws IOException
@@ -48,14 +48,14 @@ public class MinecraftVersions
 	/**
 	 * Retrive versions information from internet and update the cached container.
 	 * 
-	 * @return a new <code>MinecraftVersions</object> containing versions information.
+	 * @return a new <code>MinecraftVersions</code> object containing versions information.
 	 * @throws IOException
 	 */
 	protected synchronized static MinecraftVersions update() throws IOException
 	{
 		try (HttpGetRequest request = new HttpGetRequest(new URL(Minecraft.getDownloadUrl(), VERSIONS_URL)))
 		{
-			request.perform();
+			request.call();
 
 			if (!request.successful(HttpURLConnection.HTTP_OK))
 				throw new IOException("Invalid get response code. Expected 200!");

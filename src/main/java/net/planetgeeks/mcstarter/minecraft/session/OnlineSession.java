@@ -59,7 +59,7 @@ public class OnlineSession implements Session
 
 	/**
 	 * Attempt to authenticate using {@link #authenticate()} if a password has
-	 * been setted or attempt to refresh current session using
+	 * been set or attempt to refresh current session using
 	 * {@link #refresh()}.
 	 * 
 	 * If successful, this method will generate a new access token that will
@@ -103,10 +103,11 @@ public class OnlineSession implements Session
 		{
 			request = new HttpPostRequest(getEndpoint(YggdrasilEndPoint.AUTHENTICATE));
 			request.setBodyJson(new AuthPayload(getId(), getPassword()));
-			request.perform();
+			request.call();
 			
 			checkResponse(request, HttpURLConnection.HTTP_OK);
 
+			System.out.println(request.getResponseContent().asUTF8String());
 			AuthResponse response = request.getResponseContent().asJSONObject(AuthResponse.class);
 
 			setAccessToken(response.getAccessToken());
@@ -153,7 +154,7 @@ public class OnlineSession implements Session
 		{
 			request = new HttpPostRequest(getEndpoint(YggdrasilEndPoint.REFRESH));
 			request.setBodyJson(new RefreshPayload(getAccessToken(), getClientToken()));
-			request.perform();
+			request.call();
 
 			checkResponse(request, HttpURLConnection.HTTP_OK);
 
@@ -196,7 +197,7 @@ public class OnlineSession implements Session
 		{
 			request = new HttpPostRequest(getEndpoint(YggdrasilEndPoint.VALIDATE));
 			request.setBodyJson(new ValidatePayload(getAccessToken()));
-			request.perform();
+			request.call();
 
 			checkResponse(request, HttpURLConnection.HTTP_NO_CONTENT);
 		}
@@ -230,7 +231,7 @@ public class OnlineSession implements Session
 		{
 			request = new HttpPostRequest(getEndpoint(YggdrasilEndPoint.SIGNOUT));
 			request.setBodyJson(new SignoutPayload(getId(), getPassword()));
-			request.perform();
+			request.call();
 
 			checkResponse(request, HttpURLConnection.HTTP_NO_CONTENT);
 		}
@@ -264,7 +265,7 @@ public class OnlineSession implements Session
 		{
 			request = new HttpPostRequest(getEndpoint(YggdrasilEndPoint.INVALIDATE));
 			request.setBodyJson(new InvalidatePayload(getAccessToken(), getClientToken()));
-			request.perform();
+			request.call();
 
 			checkResponse(request, HttpURLConnection.HTTP_NO_CONTENT);
 		}
@@ -332,8 +333,9 @@ public class OnlineSession implements Session
 	{
 		private String accessToken;
 		private String clientToken;
-		private List<Profile> availableProfiles;
 		private Profile selectedProfile;
+		private List<Profile> availableProfiles;
+		
 	}
 
 	@Data

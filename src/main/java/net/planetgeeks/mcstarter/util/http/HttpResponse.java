@@ -9,7 +9,7 @@ import lombok.NonNull;
 import org.codehaus.jackson.map.ObjectMapper;
 
 /**
- * Converts an array of bytes in different types.
+ * Manage an array of bytes and provide different conversion methods.
  * 
  * @author Flood2d
  */

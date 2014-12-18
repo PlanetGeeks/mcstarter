@@ -1,12 +1,18 @@
 package net.planetgeeks.mcstarter.util.http;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.ProtocolException;
+import java.net.URI;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,6 +21,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import net.planetgeeks.mcstarter.util.task.ProgressTask;
 
 import org.codehaus.jackson.map.ObjectMapper;
 
@@ -24,7 +31,7 @@ import org.codehaus.jackson.map.ObjectMapper;
  * 
  * @author Flood2d
  */
-public abstract class HttpRequest implements Closeable
+public abstract class HttpRequest extends ProgressTask<Boolean> implements Closeable
 {
 	/**
 	 * Read timeout in milliseconds.
@@ -39,9 +46,16 @@ public abstract class HttpRequest implements Closeable
 	private InputStream inputStream;
 	private HashMap<String, String> headers = new HashMap<>();
 
+	@Getter(AccessLevel.PROTECTED)
+	@Setter(AccessLevel.PROTECTED)
+	private int bytesReaded;
+	@Getter(AccessLevel.PROTECTED)
+	@Setter(AccessLevel.PROTECTED)
+	private int bytesTotal;
+
 	protected HttpRequest(@NonNull URL url)
 	{
-		this.url = url;
+		this.url = reformat(url);
 	}
 
 	public HttpRequest setHeader(@NonNull String key, @NonNull String value)
@@ -55,12 +69,13 @@ public abstract class HttpRequest implements Closeable
 	}
 
 	/**
-	 * Performs the request and setup the stream returned by
-	 * {@link #getInputStream()}.
+	 * Perform the request and setup the stream returned by
+	 * {@link #getInputStream()}. 
 	 * 
 	 * @throws IOException if an exception occurs during the request.
 	 */
-	public synchronized void perform() throws IOException
+	@Override
+	public synchronized Boolean call() throws IOException
 	{
 		if (connection != null)
 			throw new IllegalArgumentException("Connection already established!");
@@ -77,7 +92,7 @@ public abstract class HttpRequest implements Closeable
 
 			execute(connection);
 
-			success = true;
+			return (success = true);
 		}
 		finally
 		{
@@ -123,9 +138,10 @@ public abstract class HttpRequest implements Closeable
 		{
 			if (successful(code))
 				return this;
-			else throw new IOException();
+			else
+				throw new IOException();
 		}
-		catch(IOException e)
+		catch (IOException e)
 		{
 			close();
 			throw new IOException("The request wasn't successful!");
@@ -154,21 +170,60 @@ public abstract class HttpRequest implements Closeable
 	}
 
 	@Override
-	public void close() throws IOException
+	public void close()
 	{
 		if (connection != null)
 			connection.disconnect();
 	}
 
 	/**
-	 * @throws InterruptedException if this thread has been interrupted.
+	 * Reformat an {#link #URL} that may contains blank spaces or other syntax
+	 * errors.
+	 * 
+	 * @param url - The {@link #URL} object to reformat.
+	 * @return a reformat {@link #URL} or the given url if reformat isn't
+	 *         possible.
 	 */
-	protected void checkInterrupted() throws InterruptedException
+	public static URL reformat(@NonNull URL url)
 	{
-		if (Thread.interrupted())
-			throw new InterruptedException();
+		try
+		{
+			url = new URL(url.toString());
+			URI uri = new URI(url.getProtocol(), url.getUserInfo(), url.getHost(), url.getPort(), url.getPath(), url.getQuery(), url.getRef());
+			return uri.toURL();
+		}
+		catch (Exception e)
+		{
+			return url;
+		}
 	}
 
+	/**
+	 * Increment and update the progress.
+	 * 
+	 * @param bytes to add.
+	 */
+	protected void addBytesReaded(int bytes)
+	{
+		setBytesReaded(getBytesReaded() + bytes);
+		
+		updateProgress();
+	}
+
+	@Override
+	public void updateProgress()
+	{
+		setProgress(getBytesTotal() <= 0 ? -1D : getBytesReaded() / (double) getBytesTotal());
+	}
+
+	/**
+	 * @return true if there's content to read!
+	 */
+	public boolean hasResponseContent()
+	{
+		return getInputStream() != null;
+	}
+	
 	/**
 	 * @return the http request method that will be used during
 	 *         {@link #perform()}.
@@ -273,15 +328,18 @@ public abstract class HttpRequest implements Closeable
 			if (latestResponse != null)
 				return latestResponse;
 
+			setBytesTotal(getConnection().getContentLength());
+
 			try
 			{
 				ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
-				int r;
-				while ((r = getInputStream().read()) != -1)
-				{
-					checkInterrupted();
-					baos.write(r);
+				int bytes;
+				while ((bytes = getInputStream().read()) != -1)
+				{	
+					baos.write(bytes);
+					addBytesReaded(bytes);
+					checkInterrupt();
 				}
 
 				this.latestResponse = new HttpResponse(baos.toByteArray());
@@ -293,12 +351,10 @@ public abstract class HttpRequest implements Closeable
 			}
 		}
 
-		/**
-		 * @return true if there's content to read!
-		 */
+		@Override
 		public boolean hasResponseContent()
 		{
-			return getInputStream() != null || latestResponse != null;
+			return super.hasResponseContent() || latestResponse != null;
 		}
 	}
 
@@ -309,6 +365,9 @@ public abstract class HttpRequest implements Closeable
 	 */
 	public static class HttpGetRequest extends HttpRequest
 	{
+		/** Read buffer size **/
+		private static final int READ_BUFFER_LENGTH = 1024 * 8;
+		
 		/**
 		 * @param url - The location of the resource.
 		 */
@@ -321,6 +380,68 @@ public abstract class HttpRequest implements Closeable
 		protected String getMethod()
 		{
 			return "GET";
+		}
+
+		/**
+		 * Save the response content of this request to a file and then close the request.
+		 * 
+		 * @param file - {@link #File} to save. Must be not null!
+		 * @throws IOException if an I/O exception occurs.
+		 * @throws InterruptedException if the executing <code>Thread</code> has been interrupted.
+		 */
+		public synchronized void saveToFile(@NonNull File file) throws IOException, InterruptedException
+		{
+			FileOutputStream fos = null;
+			BufferedOutputStream bos = null;
+			
+			try
+			{
+				bos = new BufferedOutputStream((fos = new FileOutputStream(file)));
+				
+				saveToStream(bos);
+			}
+			finally
+			{
+				if(fos != null) fos.close();
+				if(bos != null) bos.close();
+			}
+		}
+
+		/**
+		 * Save the response content to an <code>OutputStream</code> and then close the request.
+		 * 
+		 * @param file - {@link #OutputStream} to write on. Must be not null!
+		 * @throws IOException if an I/O exception occurs.
+		 * @throws InterruptedException if the executing <code>Thread</code> has been interrupted.
+		 */
+		public synchronized void saveToStream(@NonNull OutputStream out) throws IOException, InterruptedException
+		{
+			if(!hasResponseContent())
+				throw new IllegalArgumentException("There's no content to read! InputStream is null.");
+			
+		    setBytesTotal(getConnection().getContentLength());
+		    
+		    BufferedInputStream bis = null;
+		    
+		    try
+		    {
+		    	bis = new BufferedInputStream(getInputStream());
+		    	
+		    	byte[] data = new byte[READ_BUFFER_LENGTH];
+		    			
+		    	int bytes;
+		    	while((bytes = bis.read(data, 0, data.length)) >= 0)
+		    	{
+		    		out.write(data, 0, data.length);
+		    		addBytesReaded(bytes);
+		    		checkInterrupt();
+		    	}
+		    }
+		    finally
+		    {
+		    	if(bis != null) bis.close();
+		    	close();
+		    }
 		}
 	}
 }
