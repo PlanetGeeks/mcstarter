@@ -31,7 +31,8 @@ import org.codehaus.jackson.map.ObjectMapper;
  * 
  * @author Flood2d
  */
-public abstract class HttpRequest extends ProgressTask<Boolean> implements Closeable
+public abstract class HttpRequest extends ProgressTask<HttpRequest> implements
+		Closeable
 {
 	/**
 	 * Read timeout in milliseconds.
@@ -51,7 +52,7 @@ public abstract class HttpRequest extends ProgressTask<Boolean> implements Close
 	private int bytesReaded;
 	@Getter(AccessLevel.PROTECTED)
 	@Setter(AccessLevel.PROTECTED)
-	private int bytesTotal;
+	private int bytesTotal = -1;
 
 	protected HttpRequest(@NonNull URL url)
 	{
@@ -70,12 +71,12 @@ public abstract class HttpRequest extends ProgressTask<Boolean> implements Close
 
 	/**
 	 * Perform the request and setup the stream returned by
-	 * {@link #getInputStream()}. 
+	 * {@link #getInputStream()}.
 	 * 
 	 * @throws IOException if an exception occurs during the request.
 	 */
 	@Override
-	public synchronized Boolean call() throws IOException
+	public synchronized HttpRequest call() throws IOException
 	{
 		if (connection != null)
 			throw new IllegalArgumentException("Connection already established!");
@@ -92,7 +93,9 @@ public abstract class HttpRequest extends ProgressTask<Boolean> implements Close
 
 			execute(connection);
 
-			return (success = true);
+			success = true;
+			
+			return this;
 		}
 		finally
 		{
@@ -206,7 +209,7 @@ public abstract class HttpRequest extends ProgressTask<Boolean> implements Close
 	protected void addBytesReaded(int bytes)
 	{
 		setBytesReaded(getBytesReaded() + bytes);
-		
+
 		updateProgress();
 	}
 
@@ -223,7 +226,7 @@ public abstract class HttpRequest extends ProgressTask<Boolean> implements Close
 	{
 		return getInputStream() != null;
 	}
-	
+
 	/**
 	 * @return the http request method that will be used during
 	 *         {@link #perform()}.
@@ -336,7 +339,7 @@ public abstract class HttpRequest extends ProgressTask<Boolean> implements Close
 
 				int bytes;
 				while ((bytes = getInputStream().read()) != -1)
-				{	
+				{
 					baos.write(bytes);
 					addBytesReaded(bytes);
 					checkInterrupt();
@@ -367,7 +370,7 @@ public abstract class HttpRequest extends ProgressTask<Boolean> implements Close
 	{
 		/** Read buffer size **/
 		private static final int READ_BUFFER_LENGTH = 1024 * 8;
-		
+
 		/**
 		 * @param url - The location of the resource.
 		 */
@@ -383,65 +386,79 @@ public abstract class HttpRequest extends ProgressTask<Boolean> implements Close
 		}
 
 		/**
-		 * Save the response content of this request to a file and then close the request.
+		 * Save the response content of this request to a file and then close
+		 * the request.
 		 * 
 		 * @param file - {@link #File} to save. Must be not null!
 		 * @throws IOException if an I/O exception occurs.
-		 * @throws InterruptedException if the executing <code>Thread</code> has been interrupted.
+		 * @throws InterruptedException if the executing <code>Thread</code> has
+		 *             been interrupted.
 		 */
 		public synchronized void saveToFile(@NonNull File file) throws IOException, InterruptedException
 		{
+			File parent = file.getParentFile();
+			
+			if(parent != null && !parent.exists())
+				parent.mkdirs();
+			else if(file.exists())
+				file.delete();
+
 			FileOutputStream fos = null;
 			BufferedOutputStream bos = null;
-			
+
 			try
 			{
 				bos = new BufferedOutputStream((fos = new FileOutputStream(file)));
-				
+
 				saveToStream(bos);
 			}
 			finally
 			{
-				if(fos != null) fos.close();
-				if(bos != null) bos.close();
+				if (fos != null)
+					fos.close();
+				if (bos != null)
+					bos.close();
 			}
 		}
 
 		/**
-		 * Save the response content to an <code>OutputStream</code> and then close the request.
+		 * Save the response content to an <code>OutputStream</code> and then
+		 * close the request.
 		 * 
 		 * @param file - {@link #OutputStream} to write on. Must be not null!
 		 * @throws IOException if an I/O exception occurs.
-		 * @throws InterruptedException if the executing <code>Thread</code> has been interrupted.
+		 * @throws InterruptedException if the executing <code>Thread</code> has
+		 *             been interrupted.
 		 */
 		public synchronized void saveToStream(@NonNull OutputStream out) throws IOException, InterruptedException
 		{
-			if(!hasResponseContent())
+			if (!hasResponseContent())
 				throw new IllegalArgumentException("There's no content to read! InputStream is null.");
-			
-		    setBytesTotal(getConnection().getContentLength());
-		    
-		    BufferedInputStream bis = null;
-		    
-		    try
-		    {
-		    	bis = new BufferedInputStream(getInputStream());
-		    	
-		    	byte[] data = new byte[READ_BUFFER_LENGTH];
-		    			
-		    	int bytes;
-		    	while((bytes = bis.read(data, 0, data.length)) >= 0)
-		    	{
-		    		out.write(data, 0, data.length);
-		    		addBytesReaded(bytes);
-		    		checkInterrupt();
-		    	}
-		    }
-		    finally
-		    {
-		    	if(bis != null) bis.close();
-		    	close();
-		    }
+
+			setBytesTotal(getConnection().getContentLength());
+
+			BufferedInputStream bis = null;
+
+			try
+			{
+				bis = new BufferedInputStream(getInputStream());
+
+				byte[] data = new byte[READ_BUFFER_LENGTH];
+
+				int bytes;
+				while ((bytes = bis.read(data, 0, data.length)) >= 0)
+				{
+					out.write(data, 0, data.length);
+					addBytesReaded(bytes);
+					checkInterrupt();
+				}
+			}
+			finally
+			{
+				if (bis != null)
+					bis.close();
+				close();
+			}
 		}
 	}
 }

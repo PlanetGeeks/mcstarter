@@ -7,11 +7,11 @@ import java.util.concurrent.Callable;
  * 
  * @author Flood2d
  */
-public abstract class Task<T> implements Callable<T> 
+public abstract class Task<T> implements Callable<T>
 {
-    public void checkInterrupt() throws InterruptedException
-    {
-    	if(Thread.interrupted())
-    		throw new InterruptedException();
-    }
+	public void checkInterrupt() throws InterruptedException
+	{
+		if (Thread.interrupted())
+			throw new InterruptedException("The task has been interrupted!");
+	}
 }

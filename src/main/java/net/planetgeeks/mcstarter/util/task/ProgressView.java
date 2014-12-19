@@ -10,7 +10,7 @@ public interface ProgressView
 	/**
 	 * Get the progress.
 	 * 
-	 * @return a double value between 0.0D and 1.0D, inclusive.
+	 * @return a double value between 0.0D and 1.0D inclusive, or -1D if the progress can't be retrieved.
 	 */
     double getProgress();
     
