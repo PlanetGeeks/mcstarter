@@ -9,6 +9,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
  * Contains minecraft profile information.
+ * 
  * <ul>
  * <li> {@link #Profile.getId()} return the id (email/username) linked to this profile.</li>
  * <li> {@link #Profile.getName()} return the name of this profile.</li>
