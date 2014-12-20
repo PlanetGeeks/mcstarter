@@ -107,7 +107,6 @@ public class OnlineSession implements Session
 			
 			checkResponse(request, HttpURLConnection.HTTP_OK);
 
-			System.out.println(request.getResponseContent().asUTF8String());
 			AuthResponse response = request.getResponseContent().asJSONObject(AuthResponse.class);
 
 			setAccessToken(response.getAccessToken());

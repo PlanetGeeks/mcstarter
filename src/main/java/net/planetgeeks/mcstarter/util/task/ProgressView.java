@@ -1,7 +1,7 @@
 package net.planetgeeks.mcstarter.util.task;
 
 /**
- * Represents an object that can be monitored.
+ * Implemented by tasks whose progress can be monitored.
  * 
  * @author Flood2d
  */

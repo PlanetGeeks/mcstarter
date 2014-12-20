@@ -342,7 +342,7 @@ public abstract class HttpRequest extends ProgressTask<HttpRequest> implements
 				{
 					baos.write(bytes);
 					addBytesReaded(bytes);
-					checkInterrupt();
+					checkStatus();
 				}
 
 				this.latestResponse = new HttpResponse(baos.toByteArray());
@@ -450,7 +450,7 @@ public abstract class HttpRequest extends ProgressTask<HttpRequest> implements
 				{
 					out.write(data, 0, data.length);
 					addBytesReaded(bytes);
-					checkInterrupt();
+					checkStatus();
 				}
 			}
 			finally

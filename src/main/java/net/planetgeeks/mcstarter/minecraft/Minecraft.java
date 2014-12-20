@@ -9,7 +9,6 @@ import lombok.Setter;
 import net.planetgeeks.mcstarter.app.App;
 import net.planetgeeks.mcstarter.app.ReleaseVersion;
 import net.planetgeeks.mcstarter.app.Version;
-import net.planetgeeks.mcstarter.minecraft.session.OnlineSession;
 import net.planetgeeks.mcstarter.minecraft.session.Session;
 
 /**

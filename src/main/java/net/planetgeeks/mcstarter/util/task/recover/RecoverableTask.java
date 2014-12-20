@@ -1,19 +1,18 @@
-package net.planetgeeks.mcstarter.util.task;
+package net.planetgeeks.mcstarter.util.task.recover;
 
+import net.planetgeeks.mcstarter.util.task.Task;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Represents an extended {@link #ProgressTask} that can attempt a recovery if a checked exception occurs.
+ * Represents an extended {@link #Task} that can attempt a recovery if a checked exception occurs.
  * 
  * @author Flood2d
  */
 @Getter
-public abstract class RecoverableProgressTask<T> extends RecoverableTask<T> implements ProgressView
+public abstract class RecoverableTask<T> extends Task<T> implements Recoverable
 {
-	@Setter(AccessLevel.PROTECTED)
-	private double progress;
 	@Setter(AccessLevel.PROTECTED)
 	private int attemptCounter = 0;
     @Setter
@@ -23,11 +22,17 @@ public abstract class RecoverableProgressTask<T> extends RecoverableTask<T> impl
 	@Setter
 	private boolean recoverable = true;
 	
+	/**
+	 * Increment current attempt counter.
+	 */
 	protected void incrementAttemptCounter()
 	{
 		attemptCounter++;
 	}
 	
+	/**
+	 * Reset current attempt counter to 0.
+	 */
 	protected void resetAttemptCounter()
 	{
 		attemptCounter = 0;
@@ -42,10 +47,4 @@ public abstract class RecoverableProgressTask<T> extends RecoverableTask<T> impl
 	{
 		return attemptCounter > 0;
 	}
-	
-	@Override
-    public double getProgress(int scale)
-    {
-    	return getProgress() * scale;
-    }
 }

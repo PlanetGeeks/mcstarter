@@ -70,7 +70,7 @@ public abstract class App
 		{
 			getInstaller().call();
 			
-			checkInterrupt();
+			checkStatus();
 			
 			//TODO : launch the application.
 			

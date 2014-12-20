@@ -3,7 +3,7 @@ package net.planetgeeks.mcstarter.minecraft.session;
 import java.util.List;
 
 /**
- * This interface represents a user login instance.
+ * Implemented by user login instances.
  * 
  * @author Flood2d
  */

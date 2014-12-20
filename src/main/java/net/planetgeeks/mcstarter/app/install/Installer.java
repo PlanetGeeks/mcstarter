@@ -28,7 +28,7 @@ public abstract class Installer<T extends App> extends ProgressTask<Installer<T>
 	{
 		verify();
 
-		checkInterrupt();
+		checkStatus();
 
 		if (getDownloader().hasElements())
 			install();
@@ -57,15 +57,17 @@ public abstract class Installer<T extends App> extends ProgressTask<Installer<T>
 	 */
 	protected void install() throws IOException, InterruptedException, ExecutionException
 	{
-		try
-		{
-			downloader.call();
-		}
-		catch(ExecutionException e)
-		{
-			log.severe("Unable to download all files! The application hasn't been installed correctly.");
-			
-			throw e;
-		} 
+		downloader.call();
+		
+	//	try
+	//	{
+	//		
+	//	}
+	//	catch(ExecutionException e)
+	//	{
+	//		log.severe("Unable to download all files! The application hasn't been installed correctly.");
+	//		
+	//		throw e;
+	//	} 
 	}
 }
