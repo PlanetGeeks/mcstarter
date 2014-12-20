@@ -11,6 +11,7 @@ import java.util.concurrent.Future;
 
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.extern.java.Log;
 import net.planetgeeks.mcstarter.util.http.HttpRequest.HttpGetRequest;
 import net.planetgeeks.mcstarter.util.task.RecoverableProgressTask;
 
@@ -25,6 +26,7 @@ import net.planetgeeks.mcstarter.util.task.RecoverableProgressTask;
  * @author Flood2d
  */
 
+@Log
 public class HttpFile extends RecoverableProgressTask<HttpFile>
 {
 	@Getter
@@ -84,6 +86,8 @@ public class HttpFile extends RecoverableProgressTask<HttpFile>
 		{
 			if(isRecoverable() && getAttemptCounter() < getAttemptLimit())
 			{
+				log.warning(String.format("Unable to download the file from %s! Another attempt will be performed after %d seconds.", remoteLocation.toString(), getAttemptDelay() / 1000L));
+				
 				incrementAttemptCounter();
 				
 				clearResources();
@@ -93,6 +97,8 @@ public class HttpFile extends RecoverableProgressTask<HttpFile>
 				return call();
 			}
 
+			log.severe(String.format("Unable to download the file from %s! An I/O Exception has been thrown.", remoteLocation.toString()));
+			
 			throw e;
 		}
 		finally

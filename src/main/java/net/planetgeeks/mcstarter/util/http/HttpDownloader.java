@@ -148,10 +148,17 @@ public class HttpDownloader extends RecoverableProgressTask<List<Future<HttpFile
 	 */
 	public boolean isTerminated()
 	{
-		synchronized(this.terminated)
-		{
-			return this.terminated.size() >= this.downloads.size();
-		}
+		return this.terminated.size() >= this.downloads.size();
+	}
+	
+	/**
+	 * Check if there is at least one file to download.
+	 * 
+	 * @return true if there is at least one file to download.
+	 */
+	public boolean hasElements()
+	{
+		return !downloads.isEmpty();
 	}
 	
 	@Override

@@ -3,8 +3,10 @@ package net.planetgeeks.mcstarter.minecraft;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
+import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NonNull;
 import lombok.Setter;
@@ -26,9 +28,9 @@ public class MinecraftVersions
 	private static MinecraftVersions cached;
 	private static ObjectMapper mapper = new ObjectMapper();
 
-	@Setter
+	@Setter(AccessLevel.PRIVATE)
 	private LatestVersions latest;
-	@Setter
+	@Setter(AccessLevel.PRIVATE)
 	private List<Version> versions;
 
 	/**
@@ -66,14 +68,6 @@ public class MinecraftVersions
 		return cached;
 	}
 
-	private List<Version> getVersionsList()
-	{
-		if (versions == null)
-			throw new IllegalArgumentException("This instance contains invalid information!");
-
-		return versions;
-	}
-	
 	private LatestVersions getLatestVersions()
 	{
 		if (latest == null)
@@ -89,9 +83,9 @@ public class MinecraftVersions
 	 * @return a {@link #Version} object.
 	 * @throws {@link #NullPointerException} if there's no version with the given id.
 	 */
-	public synchronized Version getVersion(@NonNull String id)
+	public Version getVersion(@NonNull String id)
 	{
-		for (Version version : getVersionsList())
+		for (Version version : getVersions())
 			if(version.getId().equals(id))
 				return version;
 		
@@ -103,19 +97,64 @@ public class MinecraftVersions
 	 * 
 	 * @return a {@link #SnapshotVersion} object.
 	 */
-	public synchronized SnapshotVersion getLatestSnapshot()
+	public SnapshotVersion getLatestSnapshot()
 	{
         return (SnapshotVersion) getVersion(getLatestVersions().getSnapshot());
 	}
-
+	
 	/**
 	 * Get the latest release version.
 	 * 
 	 * @return a {@link #ReleaseVersion} object.
 	 */
-	public synchronized ReleaseVersion getLatestRelease()
+	public ReleaseVersion getLatestRelease()
 	{
         return (ReleaseVersion) getVersion(getLatestVersions().getRelease());
+	}
+	
+	/**
+	 * Get the list that contains all versions.
+	 * 
+	 * @return a {@link #Version} list.
+	 */
+	public List<Version> getVersions()
+	{
+		if (versions == null)
+			throw new IllegalArgumentException("This instance contains invalid information!");
+
+		return versions;
+	}
+	
+	/**
+	 * Get a list that contains all stable versions.
+	 * 
+	 * @return a {@link #ReleaseVersion} list.
+	 */
+	public List<ReleaseVersion> getReleases()
+	{
+		List<ReleaseVersion> releases = new ArrayList<>();
+		
+	    for(Version version : getVersions())
+	    	if(version instanceof ReleaseVersion)
+	    		releases.add((ReleaseVersion) version);
+	    
+	    return releases;
+	}
+	
+	/**
+	 * Get a list that contains all snapshot versions.
+	 * 
+	 * @return a {@link #SnapshotVersion} list.
+	 */
+	public List<ReleaseVersion> getSnapshots()
+	{
+		List<ReleaseVersion> releases = new ArrayList<>();
+		
+	    for(Version version : getVersions())
+	    	if(version instanceof ReleaseVersion)
+	    		releases.add((ReleaseVersion) version);
+	    
+	    return releases;
 	}
 
 	@Data

@@ -4,9 +4,13 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import lombok.Getter;
+import lombok.Setter;
 import net.planetgeeks.mcstarter.app.App;
 import net.planetgeeks.mcstarter.app.ReleaseVersion;
 import net.planetgeeks.mcstarter.app.Version;
+import net.planetgeeks.mcstarter.minecraft.session.OnlineSession;
+import net.planetgeeks.mcstarter.minecraft.session.Session;
 
 /**
  * Represents Minecraft Application. 
@@ -16,6 +20,12 @@ import net.planetgeeks.mcstarter.app.Version;
 public class Minecraft extends App
 {
 	private static final String DOWNLOAD_URL = "http://s3.amazonaws.com/Minecraft.Download/";
+	
+	@Getter
+	private MinecraftInstaller installer = new MinecraftInstaller(this);
+	
+	@Getter @Setter
+	private Session session;
 	
 	@Override
 	public Version getLatestVersion() throws IOException
@@ -33,13 +43,7 @@ public class Minecraft extends App
 	{
 		return MinecraftVersions.retrive();
 	}
-	
-	@Override
-	public void launch()
-	{
-		
-	}
-	
+
 	/**
 	 * Get Minecraft downloads base dir url.
 	 * 
