@@ -2,8 +2,6 @@ package net.planetgeeks.mcstarter.util.http;
 
 import java.io.File;
 import java.net.URL;
-import java.util.HashSet;
-import java.util.Set;
 
 import lombok.NonNull;
 import net.planetgeeks.mcstarter.util.task.recover.RecoverableTaskExecutor;
@@ -14,10 +12,8 @@ import net.planetgeeks.mcstarter.util.task.recover.RecoverableTaskExecutor;
  * 
  * @author Flood2d
  */
-public class HttpDownloader extends RecoverableTaskExecutor<HttpFile, HttpFile>
+public class HttpDownloader extends RecoverableTaskExecutor<HttpFile>
 {
-	private Set<HttpFile> terminated = new HashSet<>();
-
 	/**
 	 * Add a file to the download list.
 	 * 
@@ -30,18 +26,5 @@ public class HttpDownloader extends RecoverableTaskExecutor<HttpFile, HttpFile>
 	public synchronized void submit(@NonNull URL url, @NonNull File outFile)
 	{
 		submit(new HttpFile(url, outFile, this));
-	}
-
-	/**
-	 * Add an <code>HttpFile</code> task to the terminated list.
-	 * 
-	 * @param task - {@link #HttpFile} to add.
-	 */
-	protected void addTerminated(@NonNull HttpFile task)
-	{
-		synchronized (this.terminated)
-		{
-			this.terminated.add(task);
-		}
 	}
 }

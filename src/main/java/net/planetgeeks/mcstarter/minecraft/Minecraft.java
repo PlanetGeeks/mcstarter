@@ -7,8 +7,10 @@ import java.net.URL;
 import lombok.Getter;
 import lombok.Setter;
 import net.planetgeeks.mcstarter.app.App;
-import net.planetgeeks.mcstarter.app.ReleaseVersion;
-import net.planetgeeks.mcstarter.app.Version;
+import net.planetgeeks.mcstarter.app.version.ReleaseVersion;
+import net.planetgeeks.mcstarter.app.version.Version;
+import net.planetgeeks.mcstarter.app.version.VersionsContainer;
+import net.planetgeeks.mcstarter.minecraft.Minecraft.MinecraftVersions;
 import net.planetgeeks.mcstarter.minecraft.session.Session;
 
 /**
@@ -16,7 +18,7 @@ import net.planetgeeks.mcstarter.minecraft.session.Session;
  * 
  * @author Flood2d
  */
-public class Minecraft extends App
+public class Minecraft extends App<MinecraftVersions>
 {
 	private static final String DOWNLOAD_URL = "http://s3.amazonaws.com/Minecraft.Download/";
 	
@@ -38,11 +40,6 @@ public class Minecraft extends App
 		return getVersions().getLatestRelease();
 	}
 
-	public MinecraftVersions getVersions() throws IOException
-	{
-		return MinecraftVersions.retrive();
-	}
-
 	/**
 	 * Get Minecraft downloads base dir url.
 	 * 
@@ -51,5 +48,23 @@ public class Minecraft extends App
 	public static URL getDownloadUrl() throws MalformedURLException
 	{
 		return new URL(DOWNLOAD_URL);
+	}
+
+	@Override
+	public synchronized MinecraftVersions updateVersions() throws IOException
+	{
+		setVersions(VersionsContainer.getUpdated(MinecraftVersions.class, new URL(getDownloadUrl(), MinecraftVersions.VERSIONS_URL)));
+		
+		return getVersions();
+	}
+	
+	/**
+	 * Contains the list of all minecraft versions that can be installed.
+	 * 
+	 * @author Flood2d
+	 */
+	public static class MinecraftVersions extends VersionsContainer
+	{
+		private static final String VERSIONS_URL = "versions/versions.json";
 	}
 }

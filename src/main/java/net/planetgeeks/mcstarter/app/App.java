@@ -5,9 +5,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
-import net.planetgeeks.mcstarter.app.install.Installer;
+import net.planetgeeks.mcstarter.app.install.AppInstaller;
+import net.planetgeeks.mcstarter.app.version.ReleaseVersion;
+import net.planetgeeks.mcstarter.app.version.Version;
+import net.planetgeeks.mcstarter.app.version.VersionsContainer;
 import net.planetgeeks.mcstarter.util.task.Task;
 
 /**
@@ -15,10 +19,13 @@ import net.planetgeeks.mcstarter.util.task.Task;
  * 
  * @author Flood2d
  */
-public abstract class App
+public abstract class App<T extends VersionsContainer>
 {
 	@Getter @Setter
-    private Version version;
+    private AppProfile profile;
+	
+	@Setter(AccessLevel.PROTECTED)
+	private T versions;
 
 	/**
 	 * Get the latest application release, including snapshot releases.
@@ -43,7 +50,29 @@ public abstract class App
 	 * 
 	 * @return the application {@link #Installer}.
 	 */
-	public abstract Installer<?> getInstaller();
+	public abstract AppInstaller<?> getInstaller();
+	
+	/**
+	 * Get versions information online or from a cached container if this is available.
+	 * 
+	 * @return a <code>VersionsContainer</code> object containing versions information.
+	 * @throws IOException
+	 */
+	public T getVersions() throws IOException
+	{
+		if (versions != null)
+			return versions;
+
+		return updateVersions();
+	}
+	
+	/**
+	 * Retrieve versions information online and update the cached container.
+	 * 
+	 * @return a new <code>VersionsContainer</code> object containing versions information.
+	 * @throws IOException
+	 */
+	public abstract T updateVersions() throws IOException;
 	
 	/**
 	 * Validate application files by using its {@link #Installer} and then launch the application on a separated Thread.

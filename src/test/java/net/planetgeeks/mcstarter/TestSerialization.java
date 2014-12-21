@@ -4,8 +4,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import net.planetgeeks.mcstarter.app.ReleaseVersion;
-import net.planetgeeks.mcstarter.app.Version;
+import net.planetgeeks.mcstarter.app.version.ReleaseVersion;
+import net.planetgeeks.mcstarter.app.version.Version;
 
 import org.codehaus.jackson.map.ObjectMapper;
 

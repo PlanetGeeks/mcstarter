@@ -1,4 +1,4 @@
-package net.planetgeeks.mcstarter.app;
+package net.planetgeeks.mcstarter.app.version;
 
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonIgnore;

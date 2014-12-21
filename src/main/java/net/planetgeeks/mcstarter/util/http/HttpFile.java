@@ -4,10 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 import lombok.Getter;
 import lombok.NonNull;
@@ -16,7 +14,7 @@ import net.planetgeeks.mcstarter.util.http.HttpRequest.HttpGetRequest;
 import net.planetgeeks.mcstarter.util.task.recover.RecoverableProgressTask;
 
 /**
- * Represents a task object that manages a file that can be retrieved online. Downloads the file
+ * Represents a task that manages a file that can be retrieved online. Downloads the file
  * from the given remote location and saves it has a temporary file. At the end
  * renames the temporary file to the final destination.
  * <p>
@@ -112,8 +110,6 @@ public class HttpFile extends RecoverableProgressTask<HttpFile>
 		{
 			clearResources();
 
-			downloader.addTerminated(this);
-
 			resetAttemptCounter();
 		}
 	}
@@ -173,7 +169,7 @@ public class HttpFile extends RecoverableProgressTask<HttpFile>
 	 *             interrupted.
 	 * @throws ExecutionException if the task has thrown an exception.
 	 */
-	public static Future<HttpFile> download(@NonNull URL remoteLocation, @NonNull File destination) throws InterruptedException, ExecutionException
+	public static HttpDownloader download(@NonNull URL remoteLocation, @NonNull File destination) throws InterruptedException, ExecutionException
 	{
 		return download(remoteLocation, destination, true, 3, 15 * 1000L);
 	}
@@ -197,7 +193,7 @@ public class HttpFile extends RecoverableProgressTask<HttpFile>
 	 *             interrupted.
 	 * @throws ExecutionException if the task has thrown an exception.
 	 */
-	public static Future<HttpFile> download(@NonNull URL remoteLocation, @NonNull File destination, boolean recoverable, int attemptLimit, long attemptDelay) throws InterruptedException, ExecutionException
+	public static HttpDownloader download(@NonNull URL remoteLocation, @NonNull File destination, boolean recoverable, int attemptLimit, long attemptDelay) throws InterruptedException, ExecutionException
 	{
 		HttpDownloader downloader = new HttpDownloader();
 
@@ -210,8 +206,8 @@ public class HttpFile extends RecoverableProgressTask<HttpFile>
 
 		downloader.submit(download);
 
-		List<Future<HttpFile>> futures = downloader.call();
+		downloader.call();
 
-		return futures != null && futures.size() > 0 ? futures.get(0) : null;
+		return downloader;
 	}
 }

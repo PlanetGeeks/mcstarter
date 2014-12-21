@@ -5,10 +5,12 @@ import static net.planetgeeks.mcstarter.util.task.TaskExecutor.Status.STARTED;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import lombok.Getter;
 import lombok.NonNull;
 
 /**
@@ -21,19 +23,18 @@ import lombok.NonNull;
  * @author Flood2d
  *
  * @param <T> a {@link #Task} <code>Type</code>
- * @param <E> the <code>Type</code> returned by the <code>call()</code> method
- *            of {@link #T}.
  */
-public class TaskExecutor<T extends Task<E>, E> extends
-		ProgressTask<List<Future<E>>>
+public class TaskExecutor<T extends Task<?>> extends ProgressTask<List<Future<?>>>
 {
 	private ExecutorService executor;
 	private List<T> tasks = new ArrayList<>();
-	private List<Future<E>> futures = new ArrayList<>();
+	private List<T> actives = new ArrayList<>();
+	private List<T> terminated = new ArrayList<>();
+	private List<Future<?>> futures = new ArrayList<>();
 
 	/**
 	 * Set the {@link #ExecutorService} that will be used by this
-	 * {@link #TaskExecutor}.
+	 * {@link #RawTaskExecutor}.
 	 * <p>
 	 * Must be called before {@link #call()}.
 	 * 
@@ -48,7 +49,7 @@ public class TaskExecutor<T extends Task<E>, E> extends
 	}
 
 	/**
-	 * Get the {@link #ExecutorService} used by this {@link #TaskExecutor}.
+	 * Get the {@link #ExecutorService} used by this {@link #RawTaskExecutor}.
 	 * 
 	 * @return an {@link #ExecutorService},
 	 */
@@ -69,7 +70,7 @@ public class TaskExecutor<T extends Task<E>, E> extends
 		expectStatus(IDLE);
 
 		tasks.add(task);
-		
+
 		addSubTask(task);
 	}
 
@@ -82,7 +83,7 @@ public class TaskExecutor<T extends Task<E>, E> extends
 	 * @return a list of {@link #Future}.
 	 */
 	@Override
-	public synchronized List<Future<E>> call()
+	public synchronized List<Future<?>> call()
 	{
 		expectStatus(IDLE);
 
@@ -91,7 +92,7 @@ public class TaskExecutor<T extends Task<E>, E> extends
 		synchronized (futures)
 		{
 			for (T task : tasks)
-				futures.add(executor.submit(task));
+				futures.add(executor.submit(new Executable<T>(task, this)));
 		}
 
 		executor.shutdown();
@@ -119,7 +120,7 @@ public class TaskExecutor<T extends Task<E>, E> extends
 	public synchronized void resume()
 	{
 		expectStatus(STARTED);
-		
+
 		super.resume();
 
 		setStatus(Task.Status.RUNNING);
@@ -136,7 +137,7 @@ public class TaskExecutor<T extends Task<E>, E> extends
 	{
 		List<T> tasks = new ArrayList<>();
 
-		for(T task : this.tasks)
+		for (T task : this.tasks)
 			tasks.add(task);
 
 		return tasks;
@@ -149,16 +150,104 @@ public class TaskExecutor<T extends Task<E>, E> extends
 	 * 
 	 * @return a list of {@link #Future}
 	 */
-	public synchronized List<Future<E>> getFutures()
+	public synchronized List<Future<?>> getFutures()
 	{
 		expectStatus(STARTED);
 
-		List<Future<E>> futures = new ArrayList<>();
+		List<Future<?>> futures = new ArrayList<>();
 
-		for(Future<E> future : this.futures)
+		for (Future<?> future : this.futures)
 			futures.add(future);
 
 		return futures;
+	}
+
+	/**
+	 * Get a copy of the list containing all running tasks.
+	 * <p>
+	 * Must be called after {@link #call()}.
+	 * 
+	 * @return a list of {@link #Task}
+	 */
+	public synchronized List<T> getRunningTasks()
+	{
+		expectStatus(STARTED);
+
+		List<T> actives = new ArrayList<>();
+
+		synchronized (this.actives)
+		{
+			for (T active : this.actives)
+				actives.add(active);
+		}
+
+		return actives;
+	}
+
+	/**
+	 * Get a copy of the list containing all terminated tasks.
+	 * <p>
+	 * Must be called after {@link #call()}.
+	 * 
+	 * @return a list of {@link #Task}
+	 */
+	public synchronized List<T> getTerminatedTasks()
+	{
+		expectStatus(STARTED);
+
+		List<T> terminated = new ArrayList<>();
+
+		synchronized (this.terminated)
+		{
+			for (T task : this.terminated)
+				terminated.add(task);
+		}
+
+		return terminated;
+	}
+
+	/**
+	 * Add an <code>HttpFile</code> task to the terminated list.
+	 * 
+	 * @param task - {@link #HttpFile} to add.
+	 */
+	private void addTerminated(@NonNull T task)
+	{
+		synchronized (this.terminated)
+		{
+			if (!this.terminated.contains(task))
+				this.terminated.add(task);
+
+			removeActive(task);
+		}
+	}
+
+	/**
+	 * Add a task to the active list.
+	 * 
+	 * @param task to add.
+	 */
+	private void addActive(@NonNull T task)
+	{
+		synchronized (this.actives)
+		{
+			if (!this.actives.contains(task))
+				this.actives.add(task);
+		}
+	}
+
+	/**
+	 * Remove a task from the active list.
+	 * 
+	 * @param task to remove.
+	 */
+	private void removeActive(@NonNull T task)
+	{
+		synchronized (this.actives)
+		{
+			if (this.actives.contains(task))
+				this.actives.remove(task);
+		}
 	}
 
 	private void expectStatus(Status status)
@@ -220,7 +309,7 @@ public class TaskExecutor<T extends Task<E>, E> extends
 			double progressTotal = futures.size();
 			double progress = 0.0D;
 
-			for (Future<E> future : futures)
+			for (Future<?> future : futures)
 				progress += future.isDone() ? 1.0D : 0.0D;
 
 			if (progressTotal <= 0.0D)
@@ -237,5 +326,39 @@ public class TaskExecutor<T extends Task<E>, E> extends
 	{
 		STARTED,
 		IDLE;
+	}
+
+	/**
+	 * Used by the executor to manage active and terminated tasks.
+	 * 
+	 * @author Flood2d
+	 */
+	private static class Executable<T extends Task<?>> implements Callable<Object>
+	{
+		@Getter
+		private T task;
+		@Getter
+		private TaskExecutor<T> executor;
+
+		public Executable(@NonNull T task, @NonNull TaskExecutor<T> executor)
+		{
+			this.task = task;
+			this.executor = executor;
+		}
+
+		@Override
+		public Object call() throws Exception
+		{
+			executor.addActive(task);
+
+			try
+			{
+				return task.call();
+			}
+			finally
+			{
+				executor.addTerminated(task);
+			}
+		}
 	}
 }

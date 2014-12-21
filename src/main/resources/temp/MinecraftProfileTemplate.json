@@ -1,0 +1,31 @@
+{
+	"id": "ModPack 1",
+	"type": "modded",
+	"minecraftVersion": "1.8.1",
+	"mods": 
+	[
+		{
+			"id": "giovanni",
+			"name": "Giovanni Mod!",
+			"url": "http://files.net/giovanni.jar",
+			"dependencies": 
+			[
+				"gonzolo"
+			],
+
+			"checksum": 
+			{
+				"sha1": "458d046151ad179c85429ed7420ffb1eaf6ddf85",
+				"size": 1230
+			}
+		},
+
+		{
+			"id": "gonzolo",
+			"name": "Gonzolo Core Mod!",
+			"url": "http://files.net/gonzolo.jar",
+			"active": false,
+			"core": true
+		}
+	]
+}

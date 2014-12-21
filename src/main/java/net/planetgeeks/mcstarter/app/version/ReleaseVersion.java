@@ -1,4 +1,4 @@
-package net.planetgeeks.mcstarter.app;
+package net.planetgeeks.mcstarter.app.version;
 
 import lombok.NonNull;
 

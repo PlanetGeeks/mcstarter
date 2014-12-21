@@ -15,7 +15,7 @@ import net.planetgeeks.mcstarter.util.task.TaskExecutor;
  * @see #TaskExecutor
  */
 @Getter
-public class RecoverableTaskExecutor<T extends RecoverableTask<E>, E> extends TaskExecutor<T, E> implements Recoverable
+public class RecoverableTaskExecutor<T extends RecoverableTask<?>> extends TaskExecutor<T> implements Recoverable
 {
     @Setter
 	private int attemptLimit = 2;
@@ -25,9 +25,9 @@ public class RecoverableTaskExecutor<T extends RecoverableTask<E>, E> extends Ta
 	private boolean recoverable = true;
 	
 	@Override
-	public synchronized List<Future<E>> call()
+	public synchronized List<Future<?>> call()
 	{
-		for(RecoverableTask<E> task : getTasks())
+		for(RecoverableTask<?> task : getTasks())
 		{
 			task.setRecoverable(isRecoverable());
 			task.setAttemptLimit(getAttemptLimit());

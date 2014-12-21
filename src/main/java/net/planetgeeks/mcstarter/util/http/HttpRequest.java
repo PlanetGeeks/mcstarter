@@ -79,7 +79,7 @@ public abstract class HttpRequest extends ProgressTask<HttpRequest> implements
 	public synchronized HttpRequest call() throws IOException
 	{
 		if (connection != null)
-			throw new IllegalArgumentException("Connection already established!");
+			throw new IllegalStateException("Connection already established!");
 
 		boolean success = false;
 
@@ -167,7 +167,7 @@ public abstract class HttpRequest extends ProgressTask<HttpRequest> implements
 	public synchronized int getResponseCode() throws IOException
 	{
 		if (connection == null)
-			throw new IllegalArgumentException("This request wasn't performed!");
+			throw new IllegalStateException("This request wasn't performed!");
 
 		return connection.getResponseCode();
 	}
@@ -326,7 +326,7 @@ public abstract class HttpRequest extends ProgressTask<HttpRequest> implements
 		public synchronized HttpResponse getResponseContent() throws IOException, InterruptedException
 		{
 			if (!hasResponseContent())
-				throw new IllegalArgumentException("There's no content to read! InputStream is null.");
+				throw new IllegalStateException("There's no content to read! InputStream is null.");
 
 			if (latestResponse != null)
 				return latestResponse;
@@ -433,7 +433,7 @@ public abstract class HttpRequest extends ProgressTask<HttpRequest> implements
 		public synchronized void saveToStream(@NonNull OutputStream out) throws IOException, InterruptedException
 		{
 			if (!hasResponseContent())
-				throw new IllegalArgumentException("There's no content to read! InputStream is null.");
+				throw new IllegalStateException("There's no content to read! InputStream is null.");
 
 			setBytesTotal(getConnection().getContentLength());
 
@@ -446,7 +446,7 @@ public abstract class HttpRequest extends ProgressTask<HttpRequest> implements
 				byte[] data = new byte[READ_BUFFER_LENGTH];
 
 				int bytes;
-				while ((bytes = bis.read(data, 0, data.length)) >= 0)
+				while ((bytes = bis.read(data, 0, data.length)) != -1)
 				{
 					out.write(data, 0, data.length);
 					addBytesReaded(bytes);

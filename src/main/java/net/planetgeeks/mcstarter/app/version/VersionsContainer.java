@@ -1,4 +1,4 @@
-package net.planetgeeks.mcstarter.minecraft;
+package net.planetgeeks.mcstarter.app.version;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -8,70 +8,41 @@ import java.util.List;
 
 import lombok.AccessLevel;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
-import net.planetgeeks.mcstarter.app.ReleaseVersion;
-import net.planetgeeks.mcstarter.app.SnapshotVersion;
-import net.planetgeeks.mcstarter.app.Version;
 import net.planetgeeks.mcstarter.util.http.HttpRequest.HttpGetRequest;
 
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
-
-/**
- * Contains the list of all minecraft versions that can be installed.
- * 
- * @author Flood2d
- */
-public class MinecraftVersions
+	
+public abstract class VersionsContainer
 {
-	private static final String VERSIONS_URL = "versions/versions.json";
-	private static MinecraftVersions cached;
+	@Getter
 	private static ObjectMapper mapper = new ObjectMapper();
-
-	@Setter(AccessLevel.PRIVATE)
+	@Setter(AccessLevel.PROTECTED)
 	private LatestVersions latest;
-	@Setter(AccessLevel.PRIVATE)
+	@Setter(AccessLevel.PROTECTED)
 	private List<Version> versions;
-
-	/**
-	 * Retrive versions information from internet or from a cached container if this is available.
-	 * 
-	 * @return a new <code>MinecraftVersions</code> object containing versions information.
-	 * @throws IOException
-	 */
-	public synchronized static MinecraftVersions retrive() throws IOException
+	
+	public static <T extends VersionsContainer> T getUpdated(@NonNull Class<T> containerType, @NonNull URL remoteLocation) throws JsonParseException, JsonMappingException, IOException
 	{
-		if (cached != null)
-			return cached;
-
-		return update();
-	}
-
-	/**
-	 * Retrive versions information from internet and update the cached container.
-	 * 
-	 * @return a new <code>MinecraftVersions</code> object containing versions information.
-	 * @throws IOException
-	 */
-	protected synchronized static MinecraftVersions update() throws IOException
-	{
-		try (HttpGetRequest request = new HttpGetRequest(new URL(Minecraft.getDownloadUrl(), VERSIONS_URL)))
+		try (HttpGetRequest request = new HttpGetRequest(remoteLocation))
 		{
 			request.call();
 
 			if (!request.successful(HttpURLConnection.HTTP_OK))
-				throw new IOException("Invalid get response code. Expected 200!");
+				throw new IOException("Invalid GET response code. Expected 200!");
 
-			cached = mapper.readValue(request.getInputStream(), MinecraftVersions.class);
+			return getMapper().readValue(request.getInputStream(), containerType);
 		}
-
-		return cached;
 	}
-
+	
 	private LatestVersions getLatestVersions()
 	{
 		if (latest == null)
-			throw new IllegalArgumentException("This instance contains invalid information!");
+			throw new IllegalStateException("This instance contains invalid information!");
 
 		return latest;
 	}
@@ -120,7 +91,7 @@ public class MinecraftVersions
 	public List<Version> getVersions()
 	{
 		if (versions == null)
-			throw new IllegalArgumentException("This instance contains invalid information!");
+			throw new IllegalStateException("This instance contains invalid information!");
 
 		return versions;
 	}
@@ -156,6 +127,7 @@ public class MinecraftVersions
 	    
 	    return releases;
 	}
+
 
 	@Data
 	public static class LatestVersions
