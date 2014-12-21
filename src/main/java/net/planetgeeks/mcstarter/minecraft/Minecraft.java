@@ -1,10 +1,12 @@
 package net.planetgeeks.mcstarter.minecraft;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
 import net.planetgeeks.mcstarter.app.App;
 import net.planetgeeks.mcstarter.app.version.ReleaseVersion;
@@ -67,4 +69,21 @@ public class Minecraft extends App<MinecraftVersions>
 	{
 		private static final String VERSIONS_URL = "versions/versions.json";
 	}
+	
+	public File getAssetsDir()
+	{
+		return getSubDir("assets");
+	}
+	
+	public File getVersionsDir()
+	{
+		return getSubDir("versions");
+	}
+	
+	public File getLibrariesDir()
+	{
+		return getSubDir("libraries");
+	}
+	
+
 }

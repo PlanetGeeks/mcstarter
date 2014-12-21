@@ -1,5 +1,6 @@
 package net.planetgeeks.mcstarter.app;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -7,6 +8,7 @@ import java.util.concurrent.Future;
 
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
 import net.planetgeeks.mcstarter.app.install.AppInstaller;
 import net.planetgeeks.mcstarter.app.version.ReleaseVersion;
@@ -26,6 +28,9 @@ public abstract class App<T extends VersionsContainer>
 	
 	@Setter(AccessLevel.PROTECTED)
 	private T versions;
+	
+	@Getter @Setter 
+	private File applicationDir;
 
 	/**
 	 * Get the latest application release, including snapshot releases.
@@ -73,6 +78,22 @@ public abstract class App<T extends VersionsContainer>
 	 * @throws IOException
 	 */
 	public abstract T updateVersions() throws IOException;
+	
+	public File getProfilesDir()
+	{
+		return getSubDir("profiles");
+	}
+
+	/**
+	 * Get a sub directory of {@link #getApplicationDir()} with the given name.
+	 * 
+	 * @param name of the sub directory.
+	 * @return a sub directory of {@link #getApplicationDir()}.
+	 */
+	protected File getSubDir(@NonNull String name)
+	{
+		return new File(getApplicationDir(), name);
+	}
 	
 	/**
 	 * Validate application files by using its {@link #Installer} and then launch the application on a separated Thread.

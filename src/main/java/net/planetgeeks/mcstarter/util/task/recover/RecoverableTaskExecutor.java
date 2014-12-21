@@ -25,7 +25,7 @@ public class RecoverableTaskExecutor<T extends RecoverableTask<?>> extends TaskE
 	private boolean recoverable = true;
 	
 	@Override
-	public synchronized List<Future<?>> call()
+	public synchronized List<Future<?>> call() throws InterruptedException
 	{
 		for(RecoverableTask<?> task : getTasks())
 		{

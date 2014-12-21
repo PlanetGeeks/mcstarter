@@ -10,17 +10,30 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 
+import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
+import org.codehaus.jackson.map.SerializerProvider;
+import org.codehaus.jackson.map.annotate.JsonFilter;
+import org.codehaus.jackson.map.ser.BeanPropertyWriter;
+import org.codehaus.jackson.map.ser.FilterProvider;
+import org.codehaus.jackson.map.ser.impl.SimpleBeanPropertyFilter;
+import org.codehaus.jackson.map.ser.impl.SimpleFilterProvider;
 
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
+@JsonFilter("FileChecksum")
 public class FileChecksum
 {
 	private String sha1 = null;
 	private long size = -1;
 
+	@JsonIgnore
+	public boolean isValid()
+	{
+		return sha1 != null || size != -1;
+	}
 	@JsonIgnore
 	public boolean compare(@NonNull File file) throws IOException, NoSuchAlgorithmException
 	{	
@@ -75,6 +88,40 @@ public class FileChecksum
 				sb.append(Integer.toString((mdbytes[i] & 0xff) + 0x100, 16).substring(1));
 		
 			return sb.toString();
+		}
+	}
+	
+	public static FilterProvider addFilters(@NonNull SimpleFilterProvider provider)
+	{
+        provider.addFilter("FileChecksum", new PropertyFilter());
+
+		return provider;
+	}
+
+	public static class PropertyFilter extends SimpleBeanPropertyFilter
+	{
+		@Override
+		public void serializeAsField(Object pojo, JsonGenerator jgen, SerializerProvider provider, BeanPropertyWriter writer) throws Exception
+		{
+			if (!writer.getName().equals("sha1") && !writer.getName().equals("size"))
+			{
+				writer.serializeAsField(pojo, jgen, provider);
+				return;
+			}
+			
+			FileChecksum checksum = (FileChecksum) pojo;
+			
+			switch(writer.getName())
+			{
+				case "sha1":
+					if(checksum.getSha1() != null)
+						writer.serializeAsField(pojo, jgen, provider);
+					break;
+				case "size":
+					if(checksum.getSize() != -1)
+						writer.serializeAsField(pojo, jgen, provider);
+					break;
+			}
 		}
 	}
 }

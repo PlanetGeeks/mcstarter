@@ -22,5 +22,7 @@ public abstract class AppInstaller<T extends App<?>> extends TaskExecutor<Task<?
     	submit(verifier = new AppVerifier<T>(application));
     	
     	submit(downloader = new HttpDownloader());
+    	
+    	downloader.setAwaitTermination(true);
     }
 }

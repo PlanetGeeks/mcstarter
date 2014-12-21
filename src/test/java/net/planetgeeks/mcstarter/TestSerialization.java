@@ -32,7 +32,6 @@ public class TestSerialization extends Test
 		{
 			e.printStackTrace();
 		}
-
 	}
 
 }

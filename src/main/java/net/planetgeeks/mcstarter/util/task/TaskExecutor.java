@@ -6,9 +6,11 @@ import static net.planetgeeks.mcstarter.util.task.TaskExecutor.Status.STARTED;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import lombok.Getter;
 import lombok.NonNull;
@@ -31,6 +33,14 @@ public class TaskExecutor<T extends Task<?>> extends ProgressTask<List<Future<?>
 	private List<T> actives = new ArrayList<>();
 	private List<T> terminated = new ArrayList<>();
 	private List<Future<?>> futures = new ArrayList<>();
+	private boolean awaitTermination = false;
+
+	public void setAwaitTermination(boolean awaitTermination)
+	{
+		expectStatus(IDLE);
+		
+		this.awaitTermination = awaitTermination;
+	}
 
 	/**
 	 * Set the {@link #ExecutorService} that will be used by this
@@ -81,22 +91,29 @@ public class TaskExecutor<T extends Task<?>> extends ProgressTask<List<Future<?>
 	 * Must be called once!
 	 * 
 	 * @return a list of {@link #Future}.
+	 * @throws InterruptedException 
 	 */
 	@Override
-	public synchronized List<Future<?>> call()
+	public List<Future<?>> call() throws InterruptedException
 	{
-		expectStatus(IDLE);
-
-		ExecutorService executor = getExecutorService();
-
-		synchronized (futures)
+		synchronized(this)
 		{
-			for (T task : tasks)
-				futures.add(executor.submit(new Executable<T>(task, this)));
-		}
+			expectStatus(IDLE);
+			
+			ExecutorService executor = getExecutorService();
 
-		executor.shutdown();
+			synchronized (futures)
+			{
+				for (T task : tasks)
+					futures.add(executor.submit(new Executable<T>(task, this)));
+			}
+			
+			executor.shutdown();
+		}	
 
+		if(awaitTermination)
+			awaitTermination();
+		
 		return getFutures();
 	}
 
@@ -283,6 +300,37 @@ public class TaskExecutor<T extends Task<?>> extends ProgressTask<List<Future<?>
 	public synchronized boolean isTerminated()
 	{
 		return getExecutorService().isTerminated();
+	}
+
+	public synchronized List<ExecutionException> checkTasks() throws InterruptedException, ExecutionException
+	{
+		expectStatus(STARTED);
+
+		List<ExecutionException> exceptions = new ArrayList<>();
+
+		synchronized (futures)
+		{
+			for (Future<?> future : futures)
+				if (future.isDone())
+					try
+					{
+						future.get();
+					}
+					catch (ExecutionException e)
+					{
+						exceptions.add(e);
+					}
+		}
+
+		return exceptions;
+	}
+
+	public void awaitTermination() throws InterruptedException
+	{
+		expectStatus(STARTED);
+
+		while (!this.executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS))
+			;
 	}
 
 	/**

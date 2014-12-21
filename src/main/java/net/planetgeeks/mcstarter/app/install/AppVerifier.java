@@ -5,10 +5,9 @@ import java.util.List;
 
 import lombok.Getter;
 import net.planetgeeks.mcstarter.app.App;
-import net.planetgeeks.mcstarter.util.http.HttpFile;
 import net.planetgeeks.mcstarter.util.task.ProgressTask;
 
-public class AppVerifier<Z extends App<?>> extends ProgressTask<List<HttpFile>>
+public class AppVerifier<Z extends App<?>> extends ProgressTask<List<AppFile>>
 {
 	@Getter
 	private Z application;
@@ -25,8 +24,8 @@ public class AppVerifier<Z extends App<?>> extends ProgressTask<List<HttpFile>>
 	}
 
 	@Override
-	public List<HttpFile> call() throws Exception
+	public List<AppFile> call() throws Exception
 	{
-		return new ArrayList<HttpFile>();
+		return new ArrayList<AppFile>();
 	}
 }
