@@ -1,6 +1,7 @@
 package net.planetgeeks.mcstarter.minecraft;
 
 import net.planetgeeks.mcstarter.app.install.AppInstaller;
+import net.planetgeeks.mcstarter.app.install.AppVerifier;
 
 public class MinecraftInstaller extends AppInstaller<Minecraft>
 {
@@ -16,5 +17,13 @@ public class MinecraftInstaller extends AppInstaller<Minecraft>
 	public void updateProgress()
 	{
 		
+	}
+
+	@Override
+	public AppVerifier<Minecraft> getVerifier()
+	{
+		
+		
+		return null;
 	}
 }

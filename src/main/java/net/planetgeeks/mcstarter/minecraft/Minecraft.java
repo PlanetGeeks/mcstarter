@@ -6,13 +6,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.Setter;
 import net.planetgeeks.mcstarter.app.App;
-import net.planetgeeks.mcstarter.app.version.ReleaseVersion;
-import net.planetgeeks.mcstarter.app.version.Version;
 import net.planetgeeks.mcstarter.app.version.VersionsContainer;
-import net.planetgeeks.mcstarter.minecraft.Minecraft.MinecraftVersions;
 import net.planetgeeks.mcstarter.minecraft.session.Session;
 
 /**
@@ -20,28 +16,16 @@ import net.planetgeeks.mcstarter.minecraft.session.Session;
  * 
  * @author Flood2d
  */
-public class Minecraft extends App<MinecraftVersions>
+public class Minecraft extends App<Minecraft>
 {
 	private static final String DOWNLOAD_URL = "http://s3.amazonaws.com/Minecraft.Download/";
-	
-	@Getter
-	private MinecraftInstaller installer = new MinecraftInstaller(this);
 	
 	@Getter @Setter
 	private Session session;
 	
-	@Override
-	public Version getLatestVersion() throws IOException
-	{
-		return getVersions().getLatestSnapshot();
-	}
-
-	@Override
-	public ReleaseVersion getLatestRelease() throws IOException
-	{
-		return getVersions().getLatestRelease();
-	}
-
+	@Getter
+	private MinecraftInstaller installer = new MinecraftInstaller(this);
+	
 	/**
 	 * Get Minecraft downloads base dir url.
 	 * 
@@ -53,7 +37,7 @@ public class Minecraft extends App<MinecraftVersions>
 	}
 
 	@Override
-	public synchronized MinecraftVersions updateVersions() throws IOException
+	public synchronized VersionsContainer updateVersions() throws IOException
 	{
 		setVersions(VersionsContainer.getUpdated(MinecraftVersions.class, new URL(getDownloadUrl(), MinecraftVersions.VERSIONS_URL)));
 		
@@ -84,6 +68,4 @@ public class Minecraft extends App<MinecraftVersions>
 	{
 		return getSubDir("libraries");
 	}
-	
-
 }

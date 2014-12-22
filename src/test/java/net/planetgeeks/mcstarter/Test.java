@@ -2,8 +2,8 @@ package net.planetgeeks.mcstarter;
 
 import java.io.File;
 
+import net.planetgeeks.mcstarter.app.version.VersionsContainer;
 import net.planetgeeks.mcstarter.minecraft.Minecraft;
-import net.planetgeeks.mcstarter.minecraft.Minecraft.MinecraftVersions;
 import net.planetgeeks.mcstarter.minecraft.MinecraftProfile;
 import net.planetgeeks.mcstarter.minecraft.mods.ModpackProfile;
 
@@ -14,7 +14,7 @@ public abstract class Test
 	{
 		Minecraft minecraft = new Minecraft();
 
-		MinecraftVersions versions = minecraft.getVersions();
+		VersionsContainer versions = minecraft.getVersions();
 
 		System.out.println(versions.getVersion("1.8.1").getTime());
 

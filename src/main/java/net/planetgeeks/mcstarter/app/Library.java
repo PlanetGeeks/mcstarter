@@ -3,24 +3,27 @@ package net.planetgeeks.mcstarter.app;
 import java.util.List;
 
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.NonNull;
 
+import org.codehaus.jackson.annotate.JsonCreator;
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
+import org.codehaus.jackson.annotate.JsonProperty;
+
+@Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Library
 {
-	@Getter
-	@Setter
-	private String name;
-	@Getter
-	@Setter
+	private final String name;
 	private LibraryNatives natives;
-	@Getter
-	@Setter
 	private List<LibraryRule> rules;
-	@Getter
-	@Setter
 	private LibraryExtract extract;
 
+	@JsonCreator
+	public Library(@JsonProperty("name") @NonNull String name)
+	{
+		this.name = name;
+	}
+	
 	@Data
 	private static class LibraryNatives
 	{

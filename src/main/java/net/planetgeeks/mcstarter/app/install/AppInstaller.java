@@ -6,23 +6,22 @@ import net.planetgeeks.mcstarter.util.http.HttpDownloader;
 import net.planetgeeks.mcstarter.util.task.Task;
 import net.planetgeeks.mcstarter.util.task.TaskExecutor;
 
-public abstract class AppInstaller<T extends App<?>> extends TaskExecutor<Task<?>>
+public abstract class AppInstaller<T extends App<T>> extends TaskExecutor<Task<?>>
 {
 	@Getter
 	private T application;
-	
-	@Getter
-	private AppVerifier<T> verifier;
 	
 	@Getter
 	private HttpDownloader downloader;
 	
     public AppInstaller(T application)	
     {
-    	submit(verifier = new AppVerifier<T>(application));
+    	submit(getVerifier());
     	
     	submit(downloader = new HttpDownloader());
     	
     	downloader.setAwaitTermination(true);
     }
+    
+    public abstract AppVerifier<T> getVerifier();
 }

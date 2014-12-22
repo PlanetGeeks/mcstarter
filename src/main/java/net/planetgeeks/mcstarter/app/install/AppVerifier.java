@@ -1,31 +1,30 @@
 package net.planetgeeks.mcstarter.app.install;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import lombok.Getter;
+import lombok.NonNull;
 import net.planetgeeks.mcstarter.app.App;
 import net.planetgeeks.mcstarter.util.task.ProgressTask;
 
-public class AppVerifier<Z extends App<?>> extends ProgressTask<List<AppFile>>
+public abstract class AppVerifier<T extends App<T>> extends ProgressTask<List<AppFile>>
 {
 	@Getter
-	private Z application;
+	private final T application;
 	
-	public AppVerifier(Z app)
+	public AppVerifier(@NonNull T app)
 	{
 		this.application = app;
+	}
+	
+	public AppInstaller<?> getInstaller()
+	{
+		return getApplication().getInstaller();
 	}
 	
 	@Override
 	public void updateProgress()
 	{
 		
-	}
-
-	@Override
-	public List<AppFile> call() throws Exception
-	{
-		return new ArrayList<AppFile>();
 	}
 }
