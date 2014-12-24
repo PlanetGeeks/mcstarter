@@ -1,4 +1,4 @@
-package net.planetgeeks.mcstarter.util.task;
+package net.planetgeeks.mcstarter.util;
 
 /**
  * Implemented by tasks whose progress can be monitored.
@@ -20,7 +20,7 @@ public interface ProgressView
 	 * @param scale - the scale.
 	 * @return the result of the multiplication between {@link #getProgress()} and the given scale value.
 	 */
-    double getProgress(int scale);
+    double getProgress(double scale);
     
     /**
 	 * Update the progress.

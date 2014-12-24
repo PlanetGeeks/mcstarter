@@ -1,6 +1,6 @@
 package net.planetgeeks.mcstarter.util.task.recover;
 
-import net.planetgeeks.mcstarter.util.task.ProgressView;
+import net.planetgeeks.mcstarter.util.ProgressView;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,7 +17,7 @@ public abstract class RecoverableProgressTask<T> extends RecoverableTask<T> impl
 	private double progress;
 
 	@Override
-    public double getProgress(int scale)
+    public double getProgress(double scale)
     {
     	return getProgress() * scale;
     }

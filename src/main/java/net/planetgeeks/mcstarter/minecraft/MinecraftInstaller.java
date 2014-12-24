@@ -1,13 +1,14 @@
 package net.planetgeeks.mcstarter.minecraft;
 
 import net.planetgeeks.mcstarter.app.install.AppInstaller;
-import net.planetgeeks.mcstarter.app.install.AppVerifier;
 
 public class MinecraftInstaller extends AppInstaller<Minecraft>
 {
-	public MinecraftInstaller(Minecraft application)
+	private MinecraftVerifier verifier;
+	
+	public MinecraftInstaller(Minecraft app)
 	{
-		super(application);
+		super(app);
 		
 		getDownloader().setAttemptLimit(2);
 		getDownloader().setAttemptDelay(10 * 1000L);
@@ -20,10 +21,19 @@ public class MinecraftInstaller extends AppInstaller<Minecraft>
 	}
 
 	@Override
-	public AppVerifier<Minecraft> getVerifier()
+	public MinecraftVerifier getVerifier()
 	{
+		return verifier != null ? verifier : new MinecraftVerifier(getApp());
+	}
+
+	public static class OnlineRequiredException extends Exception
+	{
+		private static final long serialVersionUID = 1L;
 		
-		
-		return null;
+		public OnlineRequiredException(String message)
+		{
+			super(message);
+		}
 	}
 }
+

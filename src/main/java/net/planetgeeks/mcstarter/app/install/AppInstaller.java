@@ -6,10 +6,10 @@ import net.planetgeeks.mcstarter.util.http.HttpDownloader;
 import net.planetgeeks.mcstarter.util.task.Task;
 import net.planetgeeks.mcstarter.util.task.TaskExecutor;
 
-public abstract class AppInstaller<T extends App<T>> extends TaskExecutor<Task<?>>
+public abstract class AppInstaller<T extends App> extends TaskExecutor<Task<?>>
 {
 	@Getter
-	private T application;
+	private T app;
 	
 	@Getter
 	private HttpDownloader downloader;

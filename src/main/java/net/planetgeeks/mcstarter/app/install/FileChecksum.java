@@ -35,13 +35,13 @@ public class FileChecksum
 		return sha1 != null || size != -1;
 	}
 	@JsonIgnore
-	public boolean compare(@NonNull File file) throws IOException, NoSuchAlgorithmException
+	public boolean compare(@NonNull File file) throws IOException
 	{	
-		return compareSha1(file) || compareSize(file);
+		return !isValid() || compareSha1(file) || compareSize(file);
 	}
 
 	@JsonIgnore
-	public boolean compareSha1(@NonNull File file) throws IOException, NoSuchAlgorithmException
+	public boolean compareSha1(@NonNull File file) throws IOException
 	{
 		return this.sha1 != null && compareSha1(getSha1(file));
 	}
@@ -65,7 +65,7 @@ public class FileChecksum
 	}
 
 	@JsonIgnore
-	public static String getSha1(@NonNull File file) throws NoSuchAlgorithmException, IOException
+	public static String getSha1(@NonNull File file) throws IOException
 	{
 		MessageDigest md = null;
 
@@ -88,6 +88,10 @@ public class FileChecksum
 				sb.append(Integer.toString((mdbytes[i] & 0xff) + 0x100, 16).substring(1));
 		
 			return sb.toString();
+		}
+		catch(NoSuchAlgorithmException e)
+		{
+			throw new IllegalStateException("Invalid algorithm! Internal code has been modified?");
 		}
 	}
 	

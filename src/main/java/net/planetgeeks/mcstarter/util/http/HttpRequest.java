@@ -108,7 +108,7 @@ public abstract class HttpRequest extends ProgressTask<HttpRequest> implements
 	{
 		connection.setRequestMethod(getMethod());
 		connection.setUseCaches(false);
-		connection.setDoOutput(true);
+		connection.setDoInput(true);
 		connection.setReadTimeout(READ_TIMEOUT);
 
 		synchronized (headers)
@@ -272,7 +272,7 @@ public abstract class HttpRequest extends ProgressTask<HttpRequest> implements
 
 			connection.setRequestProperty("Content-Type", getContentType());
 			connection.setRequestProperty("Content-Length", String.valueOf(body.length));
-			connection.setDoInput(true);
+			connection.setDoOutput(true);
 		}
 
 		@Override

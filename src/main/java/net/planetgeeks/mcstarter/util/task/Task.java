@@ -116,7 +116,7 @@ public abstract class Task<T> implements Callable<T>
 	 * 
 	 * @param task to subordinate.
 	 */
-	public void addSubTask(@NonNull Task<?> task)
+	protected void addSubTask(@NonNull Task<?> task)
 	{
 		synchronized(subTasks)
 		{
@@ -131,7 +131,7 @@ public abstract class Task<T> implements Callable<T>
 	 * 
 	 * @param task to remove.
 	 */
-	public void removeSubTask(@NonNull Task<?> task)
+	protected void removeSubTask(@NonNull Task<?> task)
 	{
 		synchronized(subTasks)
 		{
@@ -143,7 +143,7 @@ public abstract class Task<T> implements Callable<T>
 	/**
 	 * Clear subordinated task list of this task.
 	 */
-	public void clearSubTasks()
+	protected void clearSubTasks()
 	{
 		synchronized(subTasks)
 		{

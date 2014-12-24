@@ -9,9 +9,10 @@ import net.planetgeeks.mcstarter.minecraft.mods.ModpackProfile;
 
 public abstract class Test
 {
-	
+
 	public static void main(String[] args) throws Exception
 	{
+
 		Minecraft minecraft = new Minecraft();
 
 		VersionsContainer versions = minecraft.getVersions();
@@ -19,15 +20,15 @@ public abstract class Test
 		System.out.println(versions.getVersion("1.8.1").getTime());
 
 		ModpackProfile profile = new ModpackProfile();
-		
+
 		profile.setMinecraftVersion("1.8.1");
-		
+
 		MinecraftProfile.getMapper().writeValue(new File("map.json"), profile);
-		
+
 		ModpackProfile prof = (ModpackProfile) MinecraftProfile.getMapper().readValue(new File("map.json"), MinecraftProfile.class);
 
 		System.out.println(prof.getType());
-		
+
 		/**
 		 * Minecraft minecraft = new Minecraft();
 		 * 

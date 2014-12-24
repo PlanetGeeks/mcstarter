@@ -7,20 +7,17 @@ import lombok.NonNull;
 import net.planetgeeks.mcstarter.app.App;
 import net.planetgeeks.mcstarter.util.task.ProgressTask;
 
-public abstract class AppVerifier<T extends App<T>> extends ProgressTask<List<AppFile>>
+public abstract class AppVerifier<T extends App> extends ProgressTask<List<AppFile>>
 {
 	@Getter
-	private final T application;
+	private final T app;
 	
 	public AppVerifier(@NonNull T app)
 	{
-		this.application = app;
+		this.app = app;
 	}
 	
-	public AppInstaller<?> getInstaller()
-	{
-		return getApplication().getInstaller();
-	}
+	public abstract AppInstaller<T> getInstaller();
 	
 	@Override
 	public void updateProgress()
