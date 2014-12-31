@@ -4,14 +4,16 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.List;
 
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.Setter;
 import net.planetgeeks.mcstarter.app.App;
 import net.planetgeeks.mcstarter.app.version.Version;
 import net.planetgeeks.mcstarter.minecraft.session.OnlineSession;
 import net.planetgeeks.mcstarter.minecraft.session.Session;
+import net.planetgeeks.mcstarter.util.CollectionsUtils;
+import net.planetgeeks.mcstarter.util.Defaults;
 
 /**
  * Represents Minecraft Application.
@@ -20,12 +22,6 @@ import net.planetgeeks.mcstarter.minecraft.session.Session;
  */
 public class Minecraft extends App
 {
-	private static final String DOWNLOAD_URL = "http://s3.amazonaws.com/Minecraft.Download/";
-	private static final String VERSION_URL = "versions/%0s/%0s.jar";
-	private static final String VERSION_JSON_URL = "versions/%0s/%0s.json";
-	private static final String VERSION_PATH = "%0s%1s%0s.jar";
-	private static final String VERSION_JSON_PATH = "%0s%1s%0s.json";
-
 	@Getter
 	@Setter
 	private Session session;
@@ -34,6 +30,7 @@ public class Minecraft extends App
 	private MinecraftProfile profile;
 	@Getter
 	private MinecraftInstaller installer = new MinecraftInstaller(this);
+    private List<Version> installedVersions;
 	private MinecraftVersions versions;
 
 	@Override
@@ -47,60 +44,70 @@ public class Minecraft extends App
 	{
 		return versions = MinecraftVersions.getUpdated();
 	}
+	
+	@Override
+	public List<Version> getInstalledVersions() throws InterruptedException
+	{
+		if(installedVersions == null)
+			 installedVersions = new MinecraftVersionFinder(this).call();
+			
+		return CollectionsUtils.cloneList(installedVersions);
+	}
 
 	/**
 	 * @return Minecraft downloads base directory {@link #URL}.
 	 */
 	public static URL getDownloadURL() throws MalformedURLException
 	{
-		return new URL(DOWNLOAD_URL);
+		return new URL(Defaults.getString("minecraft.baseurl.downloads"));
 	}
 
-	public static URL getVersionURL(@NonNull Version version) throws MalformedURLException
-	{
-		 return getFormattedURL(version, VERSION_URL, version.getId());
-	}
-	
-	public static File getVersionPath(@NonNull Minecraft minecraft, @NonNull Version version)
-	{
-		return new File(minecraft.getVersionsDir(), String.format(VERSION_PATH, version.getId(), File.separator));
-	}
-	
-	public static URL getVersionJsonURL(@NonNull Version version) throws MalformedURLException
-	{
-		return getFormattedURL(version, VERSION_JSON_URL, version.getId());
-	}
-	
-	public static File getVersionJsonPath(@NonNull Minecraft minecraft, @NonNull Version version)
-	{
-		return new File(minecraft.getVersionsDir(), String.format(VERSION_JSON_PATH, version.getId(), File.separator));
-	}
-	
-	private static URL getFormattedURL(@NonNull Version version, @NonNull String pattern, Object ... params) throws MalformedURLException
-	{
-		return new URL(getDownloadURL(), String.format(pattern, params));
-	}
-
+	/**
+	 * @return minecraft assets directory.
+	 */
 	public File getAssetsDir()
 	{
 		return getSubDir("assets");
 	}
 
+	/**
+	 * @return minecraft versions directory.
+	 */
 	public File getVersionsDir()
 	{
 		return getSubDir("versions");
 	}
 
+	/**
+	 * @return minecraft libraries directory.
+	 */
 	public File getLibrariesDir()
 	{
 		return getSubDir("libraries");
 	}
-	
+
+	/**
+	 * @return true if a valid {@link #OnlineSession} is set.
+	 */
 	public boolean isOnline()
 	{
-		if(getSession() == null)
+		if (getSession() == null)
 			throw new IllegalStateException("Session is null!");
+
+		return getSession() instanceof OnlineSession && getSession().isValid();
+	}
+
+	@Override
+	public void install() throws Exception
+	{
+		getInstaller().call();
+	}
+
+	@Override
+	public void launch() throws Exception
+	{
+		install();
 		
-	    return getSession() instanceof OnlineSession;
+		//TODO LAUNCH
 	}
 }

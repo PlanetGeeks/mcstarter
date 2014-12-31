@@ -10,7 +10,7 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
-import net.planetgeeks.mcstarter.util.http.HttpRequest.HttpPostRequest;
+import net.planetgeeks.mcstarter.http.HttpRequest.HttpPostRequest;
 
 /**
  * Contains Yggdrasil session information and provides different methods to

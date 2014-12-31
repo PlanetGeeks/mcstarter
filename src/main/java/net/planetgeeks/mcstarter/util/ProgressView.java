@@ -1,18 +1,20 @@
 package net.planetgeeks.mcstarter.util;
 
-/**
- * Implemented by tasks whose progress can be monitored.
- * 
- * @author Flood2d
- */
-public interface ProgressView
+import java.util.Observable;
+
+public abstract class ProgressView extends Observable
 {
+	private double progress;
+	
 	/**
 	 * Get the progress.
 	 * 
 	 * @return a double value between 0.0D and 1.0D inclusive, or -1D if the progress can't be retrieved.
 	 */
-    double getProgress();
+    public double getProgress()
+    {
+    	return progress;
+    }
     
     /**
 	 * Get the progress scaled.
@@ -20,10 +22,20 @@ public interface ProgressView
 	 * @param scale - the scale.
 	 * @return the result of the multiplication between {@link #getProgress()} and the given scale value.
 	 */
-    double getProgress(double scale);
-    
+    public double getProgress(double scale)
+    {
+    	return progress * scale;
+    }
+
     /**
-	 * Update the progress.
-	 */
-    void updateProgress();
+     * Set the progress.
+     * 
+     * @param progress - a double value between 0.0D and 1.0D, inclusive.
+     */
+    protected void setProgress(double progress)
+    {
+    	this.progress = progress;
+    	
+    	this.notifyObservers();
+    }
 }

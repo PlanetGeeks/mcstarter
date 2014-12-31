@@ -1,49 +1,34 @@
 package net.planetgeeks.mcstarter;
 
-import java.io.File;
-
-import net.planetgeeks.mcstarter.app.version.VersionsContainer;
 import net.planetgeeks.mcstarter.minecraft.Minecraft;
-import net.planetgeeks.mcstarter.minecraft.MinecraftProfile;
-import net.planetgeeks.mcstarter.minecraft.mods.ModpackProfile;
+import net.planetgeeks.mcstarter.minecraft.VanillaProfile;
+import net.planetgeeks.mcstarter.minecraft.session.OfflineSession;
+import net.planetgeeks.mcstarter.util.Platform;
 
 public abstract class Test
 {
-
 	public static void main(String[] args) throws Exception
 	{
-
+		//CREATE THE APPLICATION
 		Minecraft minecraft = new Minecraft();
 
-		VersionsContainer versions = minecraft.getVersions();
+		//SET THE APPLICATION DIR
+		minecraft.setApplicationDir(Platform.getPlatform().getAppDirectory("appProva"));
+		
+		//SET A SESSION
+		minecraft.setSession(new OfflineSession());
 
-		System.out.println(versions.getVersion("1.8.1").getTime());
+		//CREATE A MINECRAFT APPLICATION PROFILE
+		VanillaProfile profile = new VanillaProfile("vanilla 1.7.2");
+		
+		//SET MINECRAFT VERSION TO 1.7.2
+		profile.setMinecraftVersion("1.7.2");
 
-		ModpackProfile profile = new ModpackProfile();
-
-		profile.setMinecraftVersion("1.8.1");
-
-		MinecraftProfile.getMapper().writeValue(new File("map.json"), profile);
-
-		ModpackProfile prof = (ModpackProfile) MinecraftProfile.getMapper().readValue(new File("map.json"), MinecraftProfile.class);
-
-		System.out.println(prof.getType());
-
-		/**
-		 * Minecraft minecraft = new Minecraft();
-		 * 
-		 * MinecraftVersions versions = minecraft.getVersions();
-		 * 
-		 * minecraft.setVersion(versions.getLatestRelease());
-		 * 
-		 * M
-		 * 
-		 * minecraft.setSession(new OfflineSession("Flood2d"));
-		 * 
-		 * //TODO : set
-		 * 
-		 * System.out.println(minecraft.getVersion().getId());
-		 **/
+		//SET THE PROFILE INTO THE APPLICATION.
+		minecraft.setProfile(profile);
+		
+		//INSTALL THE APPLICATION. IT WILL VERIFY ALL THE APPLICATION FILES AND WILL ALSO ATTEMPT TO DOWNLOAD MISSING FILES.
+		minecraft.install();
 	}
 
 	public abstract void test() throws Exception;

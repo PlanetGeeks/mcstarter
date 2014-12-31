@@ -1,27 +1,24 @@
 package net.planetgeeks.mcstarter.app.install;
 
 import lombok.Getter;
+import lombok.NonNull;
 import net.planetgeeks.mcstarter.app.App;
-import net.planetgeeks.mcstarter.util.http.HttpDownloader;
-import net.planetgeeks.mcstarter.util.task.Task;
-import net.planetgeeks.mcstarter.util.task.TaskExecutor;
+import net.planetgeeks.mcstarter.task.Task;
 
-public abstract class AppInstaller<T extends App> extends TaskExecutor<Task<?>>
+public abstract class AppInstaller<T extends App> implements Task<AppInstaller<T>>
 {
 	@Getter
 	private T app;
 	
-	@Getter
-	private HttpDownloader downloader;
-	
-    public AppInstaller(T application)	
+    public AppInstaller(@NonNull T app)	
     {
-    	submit(getVerifier());
-    	
-    	submit(downloader = new HttpDownloader());
-    	
-    	downloader.setAwaitTermination(true);
+        this.app = app;
     }
     
-    public abstract AppVerifier<T> getVerifier();
+    @Override
+    public void checkStatus() throws InterruptedException
+    {
+    	if(Thread.interrupted())
+    		throw new InterruptedException("Installation interrupted!");
+    }
 }

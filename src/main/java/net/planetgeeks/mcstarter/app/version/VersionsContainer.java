@@ -11,7 +11,7 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
-import net.planetgeeks.mcstarter.util.http.HttpRequest.HttpGetRequest;
+import net.planetgeeks.mcstarter.http.HttpRequest.HttpGetRequest;
 
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;

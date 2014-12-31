@@ -6,7 +6,7 @@ import java.util.List;
 
 import lombok.Data;
 import lombok.NonNull;
-import net.planetgeeks.mcstarter.app.install.FileChecksum;
+import net.planetgeeks.mcstarter.util.Checksum;
 
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.annotate.JsonCreator;
@@ -15,6 +15,7 @@ import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.SerializerProvider;
 import org.codehaus.jackson.map.annotate.JsonFilter;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.ser.BeanPropertyWriter;
 import org.codehaus.jackson.map.ser.FilterProvider;
 import org.codehaus.jackson.map.ser.impl.SimpleBeanPropertyFilter;
@@ -23,37 +24,37 @@ import org.codehaus.jackson.map.ser.impl.SimpleFilterProvider;
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonFilter("Mod")
+@JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
 public class Mod
 {
 	private @NonNull String id;
 	private @NonNull String name;
-	private @NonNull String url;
+	private String url;
 	private boolean active = true;
 	private boolean core = false;
-	private @NonNull List<String> dependencies = new ArrayList<>();
-	private FileChecksum checksum = new FileChecksum();
+	private List<String> dependencies = new ArrayList<>();
+	private Checksum checksum;
+	private LoaderType loader = LoaderType.FORGE;
 
 	@JsonCreator
 	public Mod(@JsonProperty("id") @NonNull String id,
-			@JsonProperty("name") @NonNull String name,
-			@JsonProperty("url") @NonNull String url)
+			@JsonProperty("name") @NonNull String name)
 	{
 		this.id = id;
 		this.name = name;
-		this.url = url;
 	}
 
 	@JsonIgnore
-	public File getSaveLocation(@NonNull File modsDir)
+	public File getFile(@NonNull File modsDir)
 	{
 		return new File(modsDir, id + ".jar");
 	}
 
 	public static FilterProvider addFilters(@NonNull SimpleFilterProvider provider)
 	{
-        provider.addFilter("Mod", new PropertyFilter());
+		provider.addFilter("Mod", new PropertyFilter());
 
-		return FileChecksum.addFilters(provider);
+		return Checksum.addFilters(provider);
 	}
 
 	public static class PropertyFilter extends SimpleBeanPropertyFilter
@@ -61,12 +62,6 @@ public class Mod
 		@Override
 		public void serializeAsField(Object pojo, JsonGenerator jgen, SerializerProvider provider, BeanPropertyWriter writer) throws Exception
 		{
-			if (!writer.getName().equals("active") && !writer.getName().equals("core") && !writer.getName().equals("dependencies") && !writer.getName().equals("checksum"))
-			{
-				writer.serializeAsField(pojo, jgen, provider);
-				return;
-			}
-
 			Mod mod = (Mod) pojo;
 
 			boolean serialize = false;
@@ -80,13 +75,19 @@ public class Mod
 					serialize = mod.isCore();
 					break;
 				case "dependencies":
-					serialize = mod.getDependencies() != null && !mod.getDependencies().isEmpty();
+					serialize = !mod.getDependencies().isEmpty();
 					break;
 				case "checksum":
-					serialize = mod.getChecksum() != null && mod.getChecksum().isValid();
+					serialize = mod.getChecksum().isValid();
+					break;
+				case "loader":
+					serialize = mod.getLoader() != LoaderType.FORGE;
+					break;
+				default:
+					serialize = true;
 			}
-			
-			if(serialize)
+
+			if (serialize)
 				writer.serializeAsField(pojo, jgen, provider);
 		}
 	}

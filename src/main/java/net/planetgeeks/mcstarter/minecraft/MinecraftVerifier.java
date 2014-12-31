@@ -1,100 +1,139 @@
 package net.planetgeeks.mcstarter.minecraft;
 
+import static net.planetgeeks.mcstarter.util.LogUtils.log;
+
+import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import lombok.NonNull;
-import net.planetgeeks.mcstarter.app.Library;
-import net.planetgeeks.mcstarter.app.install.AppFile;
 import net.planetgeeks.mcstarter.app.install.AppVerifier;
-import net.planetgeeks.mcstarter.app.version.Version;
-import net.planetgeeks.mcstarter.minecraft.MinecraftInstaller.OnlineRequiredException;
-import net.planetgeeks.mcstarter.minecraft.MinecraftVersions.MinecraftVersion;
-import net.planetgeeks.mcstarter.util.ProgressUpdater;
-import net.planetgeeks.mcstarter.util.http.HttpDownloader;
+import net.planetgeeks.mcstarter.app.install.OnlineRequiredException;
+import net.planetgeeks.mcstarter.http.HttpDownloader;
+import net.planetgeeks.mcstarter.http.HttpFile;
+import net.planetgeeks.mcstarter.minecraft.Assets.AssetObject;
+import net.planetgeeks.mcstarter.minecraft.Assets.AssetsIndex;
+import net.planetgeeks.mcstarter.util.Checksum;
+import net.planetgeeks.mcstarter.util.Defaults;
+import net.planetgeeks.mcstarter.util.Platform;
 
-public class MinecraftVerifier extends AppVerifier<Minecraft>
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
+
+public class MinecraftVerifier extends AppVerifier<MinecraftInstaller>
 {
-	public MinecraftVerifier(Minecraft app)
+	public MinecraftVerifier(@NonNull MinecraftInstaller installer)
 	{
-		super(app);
+		super(installer);
 	}
 
 	@Override
-	public List<AppFile> call() throws Exception
+	public MinecraftVerifier call() throws InterruptedException, IOException, Exception, OnlineRequiredException
 	{
-		Version version = getApp().getSelectedVersion();
+		Platform platform = getApp().getPlatform();
 
-		checkVersion(version);
-		// CONTROLLA SE C'E IL DOWNLOAD DELLA VERSIONE SCARICATA.
+		MinecraftManifest manifest = verifyVersion();
 
-		return new ArrayList<AppFile>();
+		verifyLibraries(manifest, platform);
+		
+		verifyAssets(manifest);
+
+		return this;
 	}
 
-	private List<AppFile> checkVersion(@NonNull Version version) throws IOException, OnlineRequiredException, InterruptedException, ExecutionException
+	private MinecraftManifest verifyVersion() throws InterruptedException, IOException, Exception, OnlineRequiredException
 	{
-		List<AppFile> list = new ArrayList<>();
-		
-		AppFile json = new AppFile(Minecraft.getVersionJsonPath(getApp(), version));
+		log.info(Defaults.getString("minecraft.verifier.start.version"));
 
-		if (!json.verify())
-		{
-			if (!getApp().isOnline())
-				throw new OnlineRequiredException("You must be logged with a premium Minecraft account.");
+		Minecraft minecraft = getApp();
 
-			json.setRemoteLocation(Minecraft.getVersionJsonURL(version));
+		MinecraftProfile profile = minecraft.getProfile();
 
-			HttpDownloader downloader = json.download();
+		if (profile == null)
+			throw new IllegalStateException(Defaults.getString("minecraft.installer.noprofile"));
 
-			ProgressUpdater updater = new ProgressUpdater();
-			addSubTask(updater);
-			updater.add(this);
-			updater.call();
-
-			downloader.awaitTermination();
-
-			updater.interrupt();
-			removeSubTask(updater);
-		}
-		
-		AppFile jar = new AppFile(Minecraft.getVersionPath(getApp(), version));
-		
-		if(!jar.verify())
-		{
-			jar.setRemoteLocation(Minecraft.getVersionURL(version));
-			list.add(jar);
-		}
-		
-		MinecraftVersion mcversion = MinecraftVersion.readFrom(json.getFile());
-		
-		list.addAll(checkLibraries(mcversion.getLibraries()));
-		
-		return list;
+		return profile.retriveVersion(this);
 	}
-	
-	public List<AppFile> checkLibraries(@NonNull List<Library> libraries)
+
+	private void verifyLibraries(@NonNull MinecraftManifest manifest, @NonNull Platform platform) throws MalformedURLException
 	{
-		List<AppFile> list = new ArrayList<>();
+		log.info(Defaults.getString("minecraft.verifier.start.libraries"));
+
+		File libsDir = getApp().getLibrariesDir();
 		
-		for(Library library : libraries)
+		for (Library library : manifest.getLibraries())
 		{
-			//if(library)
+			if(!library.isAllowed(platform))
+				continue;
+			
+			File libFile = new File(libsDir, library.getPath(platform)), shaFile = new File(libsDir, library.getPathSha1(platform));
+			
+			try
+			{
+				if(libFile.exists() && Checksum.from(shaFile).compare(libFile))
+					continue;
+			}
+			catch (Exception e)
+			{	
+			}
+				
+			log.info(Defaults.getString("minecraft.verifier.add.library"));
+			
+			getDownloader().submit(library.getURL(platform), libFile);
+			getDownloader().submit(library.getURLSha1(platform), shaFile);
 		}
-		
-		return list;
 	}
 	
-	@Override
-	public void updateProgress()
+	private void verifyAssets(@NonNull MinecraftManifest manifest) throws InterruptedException, ExecutionException, JsonParseException, JsonMappingException, IOException
 	{
-		//SE STA SCARICANDO IL JSON, PRENDE L'HTTPDOWNLOADER, PRENDE IL PROGRESSO e fa scale(0.25D) dove 0.25D e' la percentuale che occupa nella task il controllo del json.
+		log.info(Defaults.getString("minecraft.verifier.start.assets"));
+		
+		URL baseURL = Defaults.getUrl("minecraft.baseurl.downloads");
+		
+		Assets assets = new Assets(manifest);
+		
+		File assetsDir = getApp().getAssetsDir();
+		
+		File indexFile = new File(assetsDir, assets.getIndexPath());
+		
+		if(!indexFile.exists())
+			HttpFile.download(assets.getIndexURL(baseURL), indexFile);
+		
+		AssetsIndex index = AssetsIndex.readFrom(indexFile);
+		
+		baseURL = Defaults.getUrl("minecraft.baseurl.resources");
+		
+		for(Map.Entry<String, AssetObject> entry : index.getObjects().entrySet())
+		{
+			AssetObject object = entry.getValue();
+			
+			File objectFile = new File(assetsDir, assets.getObjectPath(object));
+			
+			if(objectFile.exists() && new Checksum(object.getHash(), object.getSize()).compare(objectFile))
+				continue;
+			
+			log.info(Defaults.getString("minecraft.verifier.add.asset"));
+			
+			getDownloader().submit(assets.getObjectURL(baseURL, object), objectFile);
+		}
+	}
+
+	public Minecraft getApp()
+	{
+		return getInstaller().getApp();
 	}
 
 	@Override
 	public MinecraftInstaller getInstaller()
 	{
-		return getApp().getInstaller();
+		return super.getInstaller();
+	}
+
+	public HttpDownloader getDownloader()
+	{
+		return getInstaller().getDownloader();
 	}
 }

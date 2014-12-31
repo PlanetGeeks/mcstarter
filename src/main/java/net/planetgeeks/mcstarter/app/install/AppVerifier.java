@@ -1,27 +1,23 @@
 package net.planetgeeks.mcstarter.app.install;
 
-import java.util.List;
-
 import lombok.Getter;
 import lombok.NonNull;
-import net.planetgeeks.mcstarter.app.App;
-import net.planetgeeks.mcstarter.util.task.ProgressTask;
+import net.planetgeeks.mcstarter.task.Task;
 
-public abstract class AppVerifier<T extends App> extends ProgressTask<List<AppFile>>
+public abstract class AppVerifier<I extends AppInstaller<?>> implements Task<AppVerifier<I>>
 {
 	@Getter
-	private final T app;
-	
-	public AppVerifier(@NonNull T app)
+	private I installer;
+
+	public AppVerifier(@NonNull I installer)
 	{
-		this.app = app;
+		this.installer = installer;
 	}
-	
-	public abstract AppInstaller<T> getInstaller();
-	
+
 	@Override
-	public void updateProgress()
+	public void checkStatus() throws InterruptedException
 	{
-		
+		if (Thread.interrupted())
+			throw new InterruptedException("App verification interrupted!");
 	}
 }
