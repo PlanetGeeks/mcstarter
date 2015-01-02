@@ -52,24 +52,20 @@ public class ModpackProfile extends MinecraftProfile
 
 		File manifestFile = MinecraftManifest.getManifestFile(minecraft, getVersionName());
 		MinecraftManifest manifest = null;
-		
+
 		if (!manifestFile.exists())
 		{
 			// TODO SET DOWNLOADING MANIFEST FILE
 
-			/**
-			 * TODO FOR DEV TESTING if(!minecraft.isOnline()) throw new
-			 * OnlineRequiredException(
-			 * "Version manifest must be downloaded with a valid online session!"
-			 * );
-			 **/
+			//TODO if (!minecraft.isOnline())
+			// new OnlineRequiredException("Version manifest must be downloaded with a valid online session!");
 
 			// TODO APPLY LITELOADER PATCH
 			manifest = forgeLoader.retrieveManifest(minecraft);
 		}
 
 		// TODO SET VERIFING VERSION FILE
-		File versionFile = null; //TODO forgeLoader.
+		File versionFile = null; // TODO forgeLoader.
 
 		if (!versionFile.exists())
 		{

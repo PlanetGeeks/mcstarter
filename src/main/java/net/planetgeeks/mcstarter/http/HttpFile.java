@@ -20,6 +20,7 @@ import lombok.Setter;
 import net.planetgeeks.mcstarter.http.HttpRequest.HttpGetRequest;
 import net.planetgeeks.mcstarter.task.Task;
 import net.planetgeeks.mcstarter.util.Defaults;
+import net.planetgeeks.mcstarter.util.IOUtils;
 import net.planetgeeks.mcstarter.util.Listenable;
 import net.planetgeeks.mcstarter.util.Listener;
 import net.planetgeeks.mcstarter.util.ProgressView;
@@ -88,7 +89,7 @@ public class HttpFile extends ProgressView implements Task<HttpFile>, Recoverabl
 	{
 		log.info(Defaults.getString("http.file.download.start", remoteLocation.toString()));
 
-		File temp = getTempLocation();
+		File temp = IOUtils.getTemp(destination);
 
 		try
 		{
@@ -163,13 +164,10 @@ public class HttpFile extends ProgressView implements Task<HttpFile>, Recoverabl
 		if (request != null)
 			request.close();
 
-		if (getTempLocation().exists())
-			getTempLocation().delete();
-	}
-
-	private File getTempLocation()
-	{
-		return destination.getParentFile() != null ? new File(destination.getParentFile(), destination.getName() + ".temp") : new File(destination.getName() + ".temp");
+		File temp;
+		
+		if ((temp = IOUtils.getTemp(destination)).exists())
+			temp.delete();
 	}
 
 	/**

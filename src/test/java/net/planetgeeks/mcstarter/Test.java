@@ -1,17 +1,26 @@
 package net.planetgeeks.mcstarter;
 
 import java.io.File;
+import java.util.ArrayList;
 
 import net.planetgeeks.mcstarter.minecraft.Minecraft;
 import net.planetgeeks.mcstarter.minecraft.VanillaProfile;
-import net.planetgeeks.mcstarter.minecraft.mods.forge.Forge;
 import net.planetgeeks.mcstarter.minecraft.session.OfflineSession;
 import net.planetgeeks.mcstarter.minecraft.version.Version;
+import net.planetgeeks.mcstarter.util.Zip;
 
 public abstract class Test
 {
 	public static void main(String[] args) throws Exception
 	{	
+        Zip zip = new Zip(new File("temp\\1.5.2.jar"));
+        
+        ArrayList<String> entries = new ArrayList<String>();
+        entries.add("META_INF");
+        
+        zip.copyTo(new File("temp\\1.5.2-copied.jar"), entries);
+        zip.close();
+		
 		//CREATE THE APPLICATION
 		Minecraft minecraft = new Minecraft();
 

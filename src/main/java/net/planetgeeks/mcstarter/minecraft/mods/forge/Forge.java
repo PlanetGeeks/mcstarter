@@ -17,7 +17,7 @@ import net.planetgeeks.mcstarter.minecraft.mods.Loader;
 import net.planetgeeks.mcstarter.minecraft.mods.LoaderType;
 import net.planetgeeks.mcstarter.minecraft.version.Version;
 import net.planetgeeks.mcstarter.util.Defaults;
-import net.planetgeeks.mcstarter.util.Extractor;
+import net.planetgeeks.mcstarter.util.Zip;
 
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
@@ -54,11 +54,11 @@ public class Forge extends Loader
 			
 			File installProfile = new File(parentDir, "install_profile.json");
 			
-			try(Extractor extractor = new Extractor(installerFile))
+			try(Zip zip = new Zip(installerFile))
 			{	
 				log.info(Defaults.getString("forge.manifest.installer.extract", installProfile.getName(), installerFile.getAbsolutePath()));
 				
-				extractor.extractEntry(installProfile.getName(), installProfile);
+				zip.extractEntry(installProfile, installProfile.getName());
 				
 				//EXTRACT TO LIBS minecraftforge-universal-{#getPathVersion()}.jar
 			}
