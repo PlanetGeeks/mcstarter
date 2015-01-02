@@ -5,7 +5,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import lombok.Getter;
-import net.planetgeeks.mcstarter.app.version.VersionsContainer;
+import net.planetgeeks.mcstarter.minecraft.version.VersionsContainer;
 
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;

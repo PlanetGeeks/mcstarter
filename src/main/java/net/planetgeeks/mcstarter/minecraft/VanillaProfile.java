@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 
 import lombok.NonNull;
-import net.planetgeeks.mcstarter.app.install.OnlineRequiredException;
 import net.planetgeeks.mcstarter.http.HttpFile;
 
 import org.codehaus.jackson.annotate.JsonCreator;
@@ -35,32 +34,41 @@ public class VanillaProfile extends MinecraftProfile
 		// TODO SET VERIFING MANIFEST FILE
 		Minecraft minecraft = verifier.getApp();
 
-		File manifestFile = MinecraftManifest.getManifestFile(minecraft, getMinecraftVersion());
+		File manifestFile = MinecraftManifest.getManifestFile(minecraft, getVersionName());
 
 		if (!manifestFile.exists())
 		{
 			// TODO SET DOWNLOADING MANIFEST FILE
-			
-			/** TODO FOR DEV TESTING
-			if(!minecraft.isOnline())
-				throw new OnlineRequiredException("Version manifest must be downloaded with a valid online session!");
-			**/
-			HttpFile.download(MinecraftManifest.getManifestURL(getMinecraftVersion()), manifestFile);
+
+			/**
+			 * TODO FOR DEV TESTING if(!minecraft.isOnline()) throw new
+			 * OnlineRequiredException(
+			 * "Version manifest must be downloaded with a valid online session!"
+			 * );
+			 **/
+			HttpFile.download(MinecraftManifest.getManifestURL(getVersion().getId()), manifestFile);
 		}
-		
-		//TODO SET VERIFING VERSION FILE
-        File versionFile = MinecraftManifest.getVersionFile(minecraft, getMinecraftVersion());
-		
-		if(!versionFile.exists())
+
+		// TODO SET VERIFING VERSION FILE
+		File versionFile = MinecraftManifest.getVersionFile(minecraft, getVersionName());
+
+		if (!versionFile.exists())
 		{
-			//TODO SET SUBMITTED VERSION FILE DOWNLOAD
-			/** COMMENTED FOR DEV TESTING.
-			if(!minecraft.isOnline())
-				throw new OnlineRequiredException("Version file must be downloaded with a valid online session!");
-			**/
-			verifier.getDownloader().submit(MinecraftManifest.getVersionURL(getMinecraftVersion()), versionFile);
+			// TODO SET SUBMITTED VERSION FILE DOWNLOAD
+			/**
+			 * COMMENTED FOR DEV TESTING. if(!minecraft.isOnline()) throw new
+			 * OnlineRequiredException
+			 * ("Version file must be downloaded with a valid online session!");
+			 **/
+			verifier.getDownloader().submit(MinecraftManifest.getVersionURL(getVersion().getId()), versionFile);
 		}
 
 		return MinecraftManifest.readFrom(manifestFile);
+	}
+
+	@Override
+	protected String getVersionName()
+	{
+		return getVersion().getId();
 	}
 }

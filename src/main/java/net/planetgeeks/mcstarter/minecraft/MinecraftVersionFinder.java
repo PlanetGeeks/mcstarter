@@ -8,7 +8,7 @@ import java.util.List;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.planetgeeks.mcstarter.app.version.Version;
+import net.planetgeeks.mcstarter.minecraft.version.Version;
 import net.planetgeeks.mcstarter.task.Task;
 
 import org.codehaus.jackson.JsonParseException;

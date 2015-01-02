@@ -9,13 +9,13 @@ import java.net.URL;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
+import lombok.Getter;
 import lombok.NonNull;
-import net.planetgeeks.mcstarter.app.install.AppVerifier;
-import net.planetgeeks.mcstarter.app.install.OnlineRequiredException;
 import net.planetgeeks.mcstarter.http.HttpDownloader;
 import net.planetgeeks.mcstarter.http.HttpFile;
 import net.planetgeeks.mcstarter.minecraft.Assets.AssetObject;
 import net.planetgeeks.mcstarter.minecraft.Assets.AssetsIndex;
+import net.planetgeeks.mcstarter.task.Task;
 import net.planetgeeks.mcstarter.util.Checksum;
 import net.planetgeeks.mcstarter.util.Defaults;
 import net.planetgeeks.mcstarter.util.Platform;
@@ -23,11 +23,13 @@ import net.planetgeeks.mcstarter.util.Platform;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 
-public class MinecraftVerifier extends AppVerifier<MinecraftInstaller>
+public class MinecraftVerifier  implements Task<MinecraftVerifier>
 {
+	@Getter
+	private final MinecraftInstaller installer;
 	public MinecraftVerifier(@NonNull MinecraftInstaller installer)
 	{
-		super(installer);
+		this.installer = installer;
 	}
 
 	@Override
@@ -126,14 +128,15 @@ public class MinecraftVerifier extends AppVerifier<MinecraftInstaller>
 		return getInstaller().getApp();
 	}
 
-	@Override
-	public MinecraftInstaller getInstaller()
-	{
-		return super.getInstaller();
-	}
-
 	public HttpDownloader getDownloader()
 	{
 		return getInstaller().getDownloader();
+	}
+	
+	@Override
+	public void checkStatus() throws InterruptedException
+	{
+		if (Thread.interrupted())
+			throw new InterruptedException("Installation interrupted!");
 	}
 }

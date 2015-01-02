@@ -9,21 +9,27 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import net.planetgeeks.mcstarter.util.Defaults;
 import net.planetgeeks.mcstarter.util.Platform;
 import net.planetgeeks.mcstarter.util.Platform.OS;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+@JsonSerialize(include = JsonSerialize.Inclusion.NON_DEFAULT)
 public class Library
 {
+	@JsonIgnore
 	private String pkg;
 	@Getter
-	private String name;
+	@JsonIgnore
+	private String artifact;
 	@Getter
+	@JsonIgnore
 	private String version;
-
 	@Getter
 	@Setter
 	private String url;
@@ -49,15 +55,19 @@ public class Library
 	public void setName(@NonNull String name) throws Exception
 	{
 		String[] periods = name.split(Pattern.quote(":"));
-
 		if (periods.length != 3)
 			throw new Exception("Invalid library name!");
-
 		this.pkg = periods[0];
-		this.name = periods[1];
+		this.artifact = periods[1];
 		this.version = periods[2];
 	}
+	
+	public String getName()
+	{
+		return String.format("%s:%s:%s", getPackage(), getArtifact(), getVersion());
+	}
 
+	@JsonIgnore
 	public String getPackage()
 	{
 		return pkg;
@@ -66,7 +76,8 @@ public class Library
 	/**
 	 * @return true if this library is platform native.
 	 */
-	public boolean isNatives()
+	@JsonIgnore 
+	public boolean isNative()
 	{
 		return natives != null;
 	}
@@ -75,20 +86,22 @@ public class Library
 	 * Get the library file path.
 	 * <p>
 	 * Directory separator is always a backslash to the right '/'.
-	 * 
+	 *
 	 * @param platform - Destination platform
 	 * @return the library file path.
 	 */
+	@JsonIgnore
 	public String getPath(@NonNull Platform platform)
 	{
 		StringBuilder builder = new StringBuilder();
 		builder.append(getPackage().replace(".", "/") + "/");
-		builder.append(getName() + "/");
+		builder.append(getArtifact() + "/");
 		builder.append(getVersion() + "/");
 		builder.append(getFilename(platform));
 		return builder.toString();
 	}
 
+	@JsonIgnore
 	public String getPathSha1(@NonNull Platform platform)
 	{
 		return getPath(platform) + ".sha1";
@@ -96,30 +109,32 @@ public class Library
 
 	/**
 	 * Get the library file name.
-	 * 
+	 *
 	 * @param platform - Destination platform.
 	 * @return the file name, including its extension.
 	 */
+	@JsonIgnore
 	public String getFilename(@NonNull Platform platform)
 	{
 		StringBuilder builder = new StringBuilder();
-		builder.append(getName() + "-" + getVersion());
-
-		if (isNatives())
+		builder.append(getArtifact() + "-" + getVersion());
+		
+		if (isNative())
 			builder.append("-" + natives.getNative(platform));
-
+		
 		builder.append(".jar");
 		return builder.toString();
 	}
 
 	/**
 	 * Get remote location of the library file.
-	 * 
+	 *
 	 * @param platform - Destination platform.
 	 * @return an {@link #URL} object.
-	 * 
+	 *
 	 * @throws MalformedURLException
 	 */
+	@JsonIgnore
 	public URL getURL(@NonNull Platform platform) throws MalformedURLException
 	{
 		return new URL(getLibrariesURL(), getPath(platform));
@@ -127,44 +142,45 @@ public class Library
 
 	/**
 	 * Get remote location of the library checksum file.
-	 * 
+	 *
 	 * @param platform - Destination platform.
 	 * @return an {@link #URL} object.
-	 * 
+	 *
 	 * @throws MalformedURLException
 	 */
+	@JsonIgnore
 	public URL getURLSha1(@NonNull Platform platform) throws MalformedURLException
 	{
 		return new URL(getLibrariesURL(), getPathSha1(platform));
 	}
 
 	/**
-	 * Check if this library is required by the application for the given platform.
-	 * 
+	 * Check if this library is required by the application for the given
+	 * platform.
+	 *
 	 * @param platform - The destination platform.
 	 * @return true if this library must be retrieved by the given platform.
 	 */
+	@JsonIgnore
 	public boolean isAllowed(@NonNull Platform platform)
 	{
 		if (rules == null || rules.isEmpty())
 			return true;
-
 		boolean allowed = true;
-
 		for (LibraryRule rule : rules)
 			allowed = rule.isAllowed(platform) ? allowed : false;
-		
 		return allowed;
 	}
-	
+
 	/**
 	 * @return libraries base url.
-	 * 
+	 *
 	 * @throws MalformedURLException
 	 */
+	@JsonIgnore
 	public static URL getLibrariesURL() throws MalformedURLException
 	{
-		return new URL("minecraft.baseurl.libraries");
+		return Defaults.getUrl("minecraft.baseurl.libraries");
 	}
 
 	@Data
@@ -177,7 +193,6 @@ public class Library
 		public String getNative(@NonNull Platform platform)
 		{
 			String nativeString;
-
 			switch (platform.getOs())
 			{
 				case WINDOWS:
@@ -190,7 +205,6 @@ public class Library
 					nativeString = linux;
 					break;
 			}
-
 			return nativeString.replace("${arch}", platform.getArch());
 		}
 	}
@@ -201,13 +215,12 @@ public class Library
 		private String action;
 		private LibraryOs os;
 
+		@JsonIgnore
 		public boolean isAllowed(@NonNull Platform platform)
 		{
 			boolean matchOs = true;
-
 			if (os != null)
 				matchOs = os.matches(platform);
-
 			return (action.equals("allow") && matchOs) || (action.equals("disallow") && !matchOs);
 		}
 	}
@@ -247,15 +260,16 @@ public class Library
 			}
 		}
 
+		@JsonIgnore
 		public boolean matches(@NonNull Platform platform)
 		{
 			return matchesName(platform) && (getVersion() != null ? version.matcher(platform.getVersion()).matches() : true);
 		}
 
+		@JsonIgnore
 		private boolean matchesName(@NonNull Platform platform)
 		{
 			OS os = platform.getOs() != OS.WINDOWS && platform.getOs() != OS.MAC_OSX ? OS.LINUX : platform.getOs();
-
 			return getOs().equals(os);
 		}
 	}

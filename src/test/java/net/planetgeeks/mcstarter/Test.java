@@ -1,19 +1,22 @@
 package net.planetgeeks.mcstarter;
 
+import java.io.File;
+
 import net.planetgeeks.mcstarter.minecraft.Minecraft;
 import net.planetgeeks.mcstarter.minecraft.VanillaProfile;
+import net.planetgeeks.mcstarter.minecraft.mods.forge.Forge;
 import net.planetgeeks.mcstarter.minecraft.session.OfflineSession;
-import net.planetgeeks.mcstarter.util.Platform;
+import net.planetgeeks.mcstarter.minecraft.version.Version;
 
 public abstract class Test
 {
 	public static void main(String[] args) throws Exception
-	{
+	{	
 		//CREATE THE APPLICATION
 		Minecraft minecraft = new Minecraft();
 
 		//SET THE APPLICATION DIR
-		minecraft.setApplicationDir(Platform.getPlatform().getAppDirectory("appProva"));
+		minecraft.setApplicationDir(/**Platform.getPlatform().getAppDirectory("appProva")**/ new File("temp" + File.separator + "appProva"));
 		
 		//SET A SESSION
 		minecraft.setSession(new OfflineSession());
@@ -22,7 +25,7 @@ public abstract class Test
 		VanillaProfile profile = new VanillaProfile("vanilla 1.7.2");
 		
 		//SET MINECRAFT VERSION TO 1.7.2
-		profile.setMinecraftVersion("1.7.2");
+		profile.setVersion(new Version("1.7.2"));
 
 		//SET THE PROFILE INTO THE APPLICATION.
 		minecraft.setProfile(profile);

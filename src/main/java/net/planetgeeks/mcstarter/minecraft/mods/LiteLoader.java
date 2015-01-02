@@ -9,9 +9,9 @@ import org.codehaus.jackson.annotate.JsonProperty;
 public class LiteLoader extends Loader
 {
 	@JsonCreator
-	public LiteLoader(@JsonProperty("id") @NonNull String id)
+	public LiteLoader(@JsonProperty("version") @NonNull String version)
 	{
-        super(id);
+        super(version);
 	}
 	
 	@Override

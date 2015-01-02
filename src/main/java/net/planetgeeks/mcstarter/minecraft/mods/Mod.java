@@ -1,6 +1,7 @@
 package net.planetgeeks.mcstarter.minecraft.mods;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,12 +10,13 @@ import lombok.NonNull;
 import net.planetgeeks.mcstarter.util.Checksum;
 
 import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerProvider;
-import org.codehaus.jackson.map.annotate.JsonFilter;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.ser.BeanPropertyWriter;
 import org.codehaus.jackson.map.ser.FilterProvider;
@@ -23,12 +25,11 @@ import org.codehaus.jackson.map.ser.impl.SimpleFilterProvider;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonFilter("Mod")
-@JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+@JsonSerialize(using = Mod.Serializer.class)
 public class Mod
 {
-	private @NonNull String id;
-	private @NonNull String name;
+	private final String id;
+	private final String name;
 	private String url;
 	private boolean active = true;
 	private boolean core = false;
@@ -90,5 +91,23 @@ public class Mod
 			if (serialize)
 				writer.serializeAsField(pojo, jgen, provider);
 		}
+	}
+	
+	public static class Serializer extends JsonSerializer<Mod>
+	{
+		@Override
+		public void serialize(Mod value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonProcessingException
+		{
+			jgen.writeStartObject();
+			jgen.writeStringField("id", value.getId());
+			jgen.writeStringField("name", value.getName());
+			if(value.getUrl() != null) jgen.writeStringField("url", value.getUrl());
+			if(!value.isActive()) jgen.writeBooleanField("active", value.isActive());
+			if(value.isCore()) jgen.writeBooleanField("core", value.isCore());
+			if(!value.getDependencies().isEmpty()) jgen.writeObjectField("dependencies", value.getDependencies());
+			if(value.getChecksum() != null && value.getChecksum().isValid()) jgen.writeObjectField("checksum", value.getChecksum());
+			if(value.getLoader() != LoaderType.FORGE) jgen.writeObjectField("loader", value.getLoader());
+			jgen.writeEndObject();
+		}	
 	}
 }

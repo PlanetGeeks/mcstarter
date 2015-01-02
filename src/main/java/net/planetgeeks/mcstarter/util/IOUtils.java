@@ -1,10 +1,15 @@
 package net.planetgeeks.mcstarter.util;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 import lombok.NonNull;
 
@@ -49,5 +54,38 @@ public class IOUtils
 			if(reader != null)
 				reader.close();
 		}
+	}
+	
+	public static void writeTo(@NonNull InputStream is, @NonNull File file) throws IOException
+	{
+		writeTo(is, new FileOutputStream(file));
+	}
+	
+	public static void writeTo(@NonNull InputStream is, @NonNull OutputStream os) throws IOException
+	{
+		BufferedOutputStream bos = new BufferedOutputStream(os);
+		BufferedInputStream bis = new BufferedInputStream(is);
+		
+		try
+		{
+			byte[] data = new byte[1024];
+
+			int len = 0;
+			while ((len = bis.read(data, 0, data.length)) >= 0)
+				bos.write(data, 0, len);	
+		}
+		finally
+		{
+			if(bos != null)
+				bos.close();
+			if(bis != null)
+				bis.close();
+		}
+	}
+	
+	public static void prepare(@NonNull File file)
+	{
+		if(file.getParentFile() != null && !file.getParentFile().exists())
+			file.mkdirs();
 	}
 }

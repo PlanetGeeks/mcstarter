@@ -6,20 +6,20 @@ import java.io.IOException;
 import java.util.concurrent.Executors;
 
 import lombok.Getter;
-import net.planetgeeks.mcstarter.app.install.AppInstaller;
-import net.planetgeeks.mcstarter.app.install.OnlineRequiredException;
 import net.planetgeeks.mcstarter.http.HttpDownloader;
+import net.planetgeeks.mcstarter.task.Task;
 import net.planetgeeks.mcstarter.util.Defaults;
 
-public class MinecraftInstaller extends AppInstaller<Minecraft>
+public class MinecraftInstaller implements Task<MinecraftInstaller>
 {
+	@Getter
+	private final Minecraft app;
 	@Getter
 	private final HttpDownloader downloader;
 
 	protected MinecraftInstaller(Minecraft app)
 	{
-		super(app);
-
+		this.app = app;
 		this.downloader = new HttpDownloader();
 		this.downloader.setExecutor(Executors.newFixedThreadPool(5));
 	}
@@ -41,5 +41,12 @@ public class MinecraftInstaller extends AppInstaller<Minecraft>
 		getDownloader().call();
 
 		return this;
+	}
+
+	@Override
+	public void checkStatus() throws InterruptedException
+	{
+		if (Thread.interrupted())
+			throw new InterruptedException("Installation interrupted!");
 	}
 }
